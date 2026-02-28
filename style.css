@@ -56,6 +56,57 @@ body {
   padding: 0 20px;
 }
 
+.auth-screen {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 20% 20%, rgba(255,214,170,0.35), transparent 30%), radial-gradient(circle at 80% 10%, rgba(189,222,255,0.28), transparent 30%), rgba(0,0,0,0.06);
+  z-index: 20;
+}
+
+.auth-card {
+  background: #fffaf1;
+  padding: 28px 26px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  text-align: center;
+  max-width: 360px;
+  width: 90%;
+}
+
+.auth-card h2 { margin: 0 0 6px; font-family: 'Playfair Display', serif; }
+.auth-card p { margin: 0 0 14px; color: var(--muted); }
+
+.auth-form {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-form input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.14);
+  font-size: 15px;
+}
+
+.hidden { display: none; }
+
+.session-pill {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: #fff5e6;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+  font-weight: 700;
+}
+
 
 .hero {
   text-align: center;
@@ -481,6 +532,7 @@ body.dark .nav-btn { background: #352c25; border-color: rgba(255,255,255,0.12); 
 .pill-btn:focus-visible { outline: 2px solid rgba(255,192,94,0.9); outline-offset: 3px; }
 .pill-btn.slim { padding: 8px 12px; font-size: 13px; }
 .pill-btn.emph { background: linear-gradient(135deg, #ffd972, #f4b35c); box-shadow: 0 10px 20px rgba(244, 179, 92, 0.25); border-color: rgba(0,0,0,0.08); }
+.pill-btn.full { width: 100%; justify-content: center; }
 
 .quote {
   text-align: center;

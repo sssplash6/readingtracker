@@ -18,11 +18,23 @@ const bookSelect = document.getElementById('book-select');
 const addBookBtn = document.getElementById('add-book-btn');
 const backdrop = document.getElementById('backdrop');
 const drawerClose = document.getElementById('drawer-close');
+const authForm = document.getElementById('auth-form');
+const authUsername = document.getElementById('auth-username');
+const authPassword = document.getElementById('auth-password');
+const authSession = document.getElementById('auth-session');
+const authUserLabel = document.getElementById('auth-user-label');
+const signoutBtn = document.getElementById('signout-btn');
+const authScreen = document.getElementById('auth-screen');
+const appShell = document.getElementById('app-shell');
 
 let currentMonth = new Date(startDate);
 let activeDayKey = null;
 let lastDeleted = null;
 let toastTimer = null;
+let apiBase = window.API_BASE || '';
+let token = null;
+let logsCache = {};
+let booksCache = {};
 
 function today() {
   return stripTime(new Date());
@@ -41,17 +53,22 @@ function getMonthDays(date) {
 }
 
 function loadData() {
-  const raw = localStorage.getItem('readingLogs2026');
-  return raw ? JSON.parse(raw) : {};
+  if (!logsCache || Object.keys(logsCache).length === 0) {
+    loadFromLocal();
+  }
+  return logsCache;
 }
 
 function loadBooks() {
-  const raw = localStorage.getItem('readingBooks2026');
-  return raw ? JSON.parse(raw) : {};
+  if (!booksCache || Object.keys(booksCache).length === 0) {
+    loadFromLocal();
+  }
+  return booksCache;
 }
 
 function saveBooks(data) {
-  localStorage.setItem('readingBooks2026', JSON.stringify(data));
+  booksCache = data;
+  saveLocal();
 }
 
 function monthKey(date) {
@@ -59,7 +76,8 @@ function monthKey(date) {
 }
 
 function saveData(data) {
-  localStorage.setItem('readingLogs2026', JSON.stringify(data));
+  logsCache = data;
+  saveLocal();
 }
 
 function totalForDay(logs) {
@@ -217,6 +235,44 @@ function closeDrawer() {
 backdrop.addEventListener('click', closeDrawer);
 drawerClose.addEventListener('click', closeDrawer);
 
+authForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = authUsername.value.trim();
+  const password = authPassword.value;
+  if (!username || !password) return;
+  try {
+    // try login
+    const login = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    rememberToken(login.token, username);
+  } catch (_err) {
+    // try signup
+    try {
+      const signup = await apiFetch('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      });
+      rememberToken(signup.token, username);
+    } catch (err2) {
+      alert(err2.message || 'Auth failed');
+      return;
+    }
+  }
+  toggleAuthUI();
+  await syncFromRemote();
+  authPassword.value = '';
+});
+
+signoutBtn?.addEventListener('click', async () => {
+  rememberToken(null);
+  toggleAuthUI();
+  loadFromLocal();
+  renderMonth();
+  if (activeDayKey) renderLogs();
+});
+
 function renderLogs() {
   const data = loadData();
   const logs = data[activeDayKey] || [];
@@ -260,6 +316,7 @@ function renderLogs() {
       del.type = 'button';
       del.className = 'delete-log';
       del.dataset.ts = log.timestamp;
+      del.dataset.id = log.id || '';
       del.setAttribute('aria-label', 'Delete log');
       del.innerHTML = `<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"><path d="M6 7h12l-1 13H7L6 7Z" fill="#4a1c1c" stroke="none"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m-7 0h8" stroke="#4a1c1c" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M10 10v7M14 10v7" stroke="#fef6f0" stroke-width="1.6" stroke-linecap="round"/></svg>`;
 
@@ -288,26 +345,49 @@ logForm.addEventListener('submit', (e) => {
   }
   const data = loadData();
   const logs = data[activeDayKey] || [];
-  logs.push({ pages, book, timestamp: new Date().toISOString() });
-  data[activeDayKey] = logs;
-  saveData(data);
-  pagesInput.value = '';
-  bookInput.value = '';
-  bookSelect.value = '';
-  renderLogs();
-  renderMonth();
+  const newLog = { pages, book, timestamp: new Date().toISOString() };
+
+  const finish = (stored) => {
+    logs.push(stored);
+    data[activeDayKey] = logs;
+    saveData(data);
+    pagesInput.value = '';
+    bookInput.value = '';
+    bookSelect.value = '';
+    renderLogs();
+    renderMonth();
+  };
+
+  if (token) {
+    apiFetch('/logs', {
+      method: 'POST',
+      body: JSON.stringify({ date: activeDayKey, pages, book }),
+    })
+      .then((row) => {
+        finish({ ...newLog, id: row.id, timestamp: row.created_at });
+      })
+      .catch((err) => alert(err.message || 'Could not save log'));
+  } else {
+    const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    finish({ ...newLog, id });
+  }
 });
 
 logList.addEventListener('click', (e) => {
   const btn = e.target.closest('.delete-log');
   if (!btn) return;
   const ts = btn.dataset.ts;
+  const id = btn.dataset.id;
   const data = loadData();
   const logs = data[activeDayKey] || [];
-  const remaining = logs.filter((log) => log.timestamp !== ts);
-  const deleted = logs.find((log) => log.timestamp === ts);
+  const match = (log) => (id ? log.id === id : log.timestamp === ts);
+  const remaining = logs.filter((log) => !match(log));
+  const deleted = logs.find(match);
   data[activeDayKey] = remaining;
   saveData(data);
+  if (token && deleted?.id) {
+    apiFetch(`/logs/${deleted.id}`, { method: 'DELETE' }).catch((err) => console.error(err));
+  }
   if (deleted) {
     lastDeleted = { day: activeDayKey, log: deleted };
     showToast();
@@ -331,6 +411,12 @@ addBookBtn.addEventListener('click', () => {
   books[month] = list;
   saveBooks(books);
   populateBookOptions();
+  if (token) {
+    apiFetch('/books', {
+      method: 'POST',
+      body: JSON.stringify({ month, title: title.trim() }),
+    }).catch((err) => console.error(err));
+  }
 });
 
 function populateBookOptions() {
@@ -358,6 +444,91 @@ function stripTime(d) {
   const t = new Date(d);
   t.setHours(0, 0, 0, 0);
   return t;
+}
+
+function toggleAuthUI() {
+  const isAuthed = Boolean(token);
+  authScreen.classList.toggle('hidden', isAuthed);
+  appShell.classList.toggle('hidden', !isAuthed);
+  if (isAuthed) {
+    authSession.classList.remove('hidden');
+    authUserLabel.textContent = localStorage.getItem('rt_username') || 'Logged in';
+  } else {
+    authSession.classList.add('hidden');
+    authPassword.value = '';
+  }
+}
+
+async function apiFetch(path, options = {}) {
+  if (!apiBase) throw new Error('API_BASE not set in config.js');
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${apiBase}${path}`, { ...options, headers });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || res.statusText);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+async function syncFromRemote() {
+  if (!token) {
+    loadFromLocal();
+    renderMonth();
+    return;
+  }
+  try {
+    const [logs, books] = await Promise.all([
+      apiFetch('/logs'),
+      apiFetch('/books'),
+    ]);
+    logsCache = {};
+    logs.forEach((row) => {
+      if (!logsCache[row.date]) logsCache[row.date] = [];
+      logsCache[row.date].push({
+        id: row.id,
+        pages: row.pages,
+        book: row.book,
+        timestamp: row.created_at,
+      });
+    });
+    booksCache = {};
+    books.forEach((row) => {
+      if (!booksCache[row.month]) booksCache[row.month] = [];
+      booksCache[row.month].push(row.title);
+    });
+    saveLocal();
+    renderMonth();
+    if (activeDayKey) renderLogs();
+  } catch (err) {
+    console.error(err);
+    loadFromLocal();
+    renderMonth();
+  }
+}
+
+function loadFromLocal() {
+  const raw = localStorage.getItem('readingLogs2026');
+  logsCache = raw ? JSON.parse(raw) : {};
+  const braw = localStorage.getItem('readingBooks2026');
+  booksCache = braw ? JSON.parse(braw) : {};
+}
+
+function saveLocal() {
+  localStorage.setItem('readingLogs2026', JSON.stringify(logsCache));
+  localStorage.setItem('readingBooks2026', JSON.stringify(booksCache));
+}
+
+function rememberToken(newToken, username) {
+  token = newToken;
+  if (token) {
+    localStorage.setItem('rt_token', token);
+    if (username) localStorage.setItem('rt_username', username);
+  } else {
+    localStorage.removeItem('rt_token');
+    localStorage.removeItem('rt_username');
+  }
 }
 
 function getBestDayKey(data, first, last) {
@@ -446,6 +617,17 @@ function undoDelete() {
   logs.push(lastDeleted.log);
   data[lastDeleted.day] = logs;
   saveData(data);
+  if (token) {
+    const log = lastDeleted.log;
+    apiFetch('/logs', {
+      method: 'POST',
+      body: JSON.stringify({
+        date: lastDeleted.day,
+        pages: log.pages,
+        book: log.book,
+      }),
+    }).catch((err) => console.error(err));
+  }
   lastDeleted = null;
   document.querySelector('.toast').style.display = 'none';
   renderLogs();
@@ -468,4 +650,15 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-renderMonth();
+async function bootstrap() {
+  loadFromLocal();
+  const storedToken = localStorage.getItem('rt_token');
+  if (storedToken) {
+    token = storedToken;
+  }
+  toggleAuthUI();
+  await syncFromRemote();
+  renderMonth();
+}
+
+bootstrap();
