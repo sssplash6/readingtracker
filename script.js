@@ -1,0 +1,471 @@
+/* Reading Journal - page tracker */
+
+const startDate = new Date('2026-03-01');
+const endDate = new Date('2026-12-31');
+
+const monthLabel = document.getElementById('month-label');
+const grid = document.getElementById('days-grid');
+const prevBtn = document.getElementById('prev-month');
+const nextBtn = document.getElementById('next-month');
+const drawer = document.getElementById('drawer');
+const drawerDate = document.getElementById('drawer-date');
+const drawerTotal = document.getElementById('drawer-total');
+const logList = document.getElementById('log-list');
+const logForm = document.getElementById('log-form');
+const pagesInput = document.getElementById('pages');
+const bookInput = document.getElementById('book');
+const bookSelect = document.getElementById('book-select');
+const addBookBtn = document.getElementById('add-book-btn');
+const backdrop = document.getElementById('backdrop');
+const drawerClose = document.getElementById('drawer-close');
+
+let currentMonth = new Date(startDate);
+let activeDayKey = null;
+let lastDeleted = null;
+let toastTimer = null;
+
+function today() {
+  return stripTime(new Date());
+}
+
+function keyForDate(date) {
+  return date.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function getMonthDays(date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  return { first, last };
+}
+
+function loadData() {
+  const raw = localStorage.getItem('readingLogs2026');
+  return raw ? JSON.parse(raw) : {};
+}
+
+function loadBooks() {
+  const raw = localStorage.getItem('readingBooks2026');
+  return raw ? JSON.parse(raw) : {};
+}
+
+function saveBooks(data) {
+  localStorage.setItem('readingBooks2026', JSON.stringify(data));
+}
+
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function saveData(data) {
+  localStorage.setItem('readingLogs2026', JSON.stringify(data));
+}
+
+function totalForDay(logs) {
+  return logs.reduce((sum, item) => sum + (item.pages || 0), 0);
+}
+
+function colorForTotal(total) {
+  // thresholds: red (<50), yellow (50-99), green (100-199), purple (200+)
+  if (total >= 200) return 'color-purple';
+  if (total >= 100) return 'color-green';
+  if (total >= 50) return 'color-yellow';
+  if (total > 0) return 'color-red';
+  return 'color-zero';
+}
+
+function addScribble(btn) {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('scribble');
+
+  const paths = [
+    'M8 16 Q 26 6 52 16 T 94 14',
+    'M10 74 C 32 60 54 86 76 70 88 62 94 78 92 82',
+    'M6 46 C 20 52 36 44 50 50 66 56 82 44 94 50',
+    'M12 26 Q 30 34 46 26 T 82 28'
+  ];
+
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('d', paths[Math.floor(Math.random() * paths.length)]);
+  path.setAttribute('stroke', 'rgba(0,0,0,0.24)');
+  path.setAttribute('stroke-width', '1.2');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  path.setAttribute('stroke-dasharray', '2 6');
+
+  svg.appendChild(path);
+  btn.appendChild(svg);
+}
+
+function spawnPressRipple(btn, evt) {
+  const ripple = document.createElement('span');
+  ripple.className = 'press-ripple';
+  const rect = btn.getBoundingClientRect();
+  const x = evt.clientX ? evt.clientX - rect.left : rect.width / 2;
+  const y = evt.clientY ? evt.clientY - rect.top : rect.height * 0.7;
+  ripple.style.left = `${x}px`;
+  ripple.style.top = `${y}px`;
+  btn.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+}
+
+function renderMonth() {
+  const data = loadData();
+  const { first, last } = getMonthDays(currentMonth);
+  monthLabel.textContent = `${first.toLocaleString('default', { month: 'long' })} ${first.getFullYear()}`;
+  const todayDate = today();
+  const todayKey = keyForDate(todayDate);
+  const bestDayKey = getBestDayKey(data, first, last);
+  updateSummary(data, first, last);
+  updateStreakChip(data);
+  populateBookOptions();
+
+  grid.innerHTML = '';
+
+  const startOffset = first.getDay(); // 0=Sun
+  for (let i = 0; i < startOffset; i++) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'day-cell placeholder';
+    grid.appendChild(placeholder);
+  }
+
+  for (let day = 1; day <= last.getDate(); day++) {
+    const dateObj = new Date(first.getFullYear(), first.getMonth(), day);
+    const key = keyForDate(dateObj);
+    const dayLogs = data[key] || [];
+    const total = totalForDay(dayLogs);
+    const isPast = dateObj < todayDate;
+
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+
+    const btn = document.createElement('button');
+    const color = colorForTotal(total);
+    const extras = [];
+    if (isPast && total === 0) extras.push('zero-past');
+    if (bestDayKey === key && total > 0) extras.push('best-day');
+    const streakDays = getStreakSet(data);
+    if (streakDays.has(key)) extras.push('streak');
+    btn.className = `day-btn ${color} ${dayLogs.length ? 'has-logs' : ''} ${extras.join(' ')}`.trim();
+    btn.style.setProperty('--tilt', `${(Math.random() * 1.2 - 0.6).toFixed(2)}deg`);
+    btn.setAttribute('data-date', key);
+    btn.setAttribute('role', 'gridcell');
+    btn.setAttribute('aria-label', `${key}: ${total} pages`);
+
+    const number = document.createElement('div');
+    number.className = 'day-number';
+    const monthAbbr = first.toLocaleString('default', { month: 'short' }).toLowerCase();
+    number.textContent = `${monthAbbr} ${day}`;
+
+    const totalEl = document.createElement('div');
+    totalEl.className = 'day-total';
+    const displayTotal = total.toLocaleString();
+    totalEl.innerHTML = `<span class="bookmark"></span><span>${displayTotal}</span>`;
+
+    btn.appendChild(number);
+    btn.appendChild(totalEl);
+    if (isPast && total === 0) {
+      const crack = document.createElement('div');
+      crack.className = 'crack';
+      btn.appendChild(crack);
+    }
+    addScribble(btn);
+    if (key === todayKey) {
+      const ring = document.createElement('div');
+      ring.className = 'today-ring';
+      btn.appendChild(ring);
+    }
+    cell.appendChild(btn);
+    grid.appendChild(cell);
+
+    btn.addEventListener('click', (e) => {
+      spawnPressRipple(btn, e);
+      openDrawer(key);
+    });
+  }
+
+  prevBtn.disabled = first <= startDate;
+  nextBtn.disabled = last >= endDate;
+}
+
+function openDrawer(key) {
+  activeDayKey = key;
+  const date = new Date(key);
+  drawerDate.textContent = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  renderLogs();
+  drawer.classList.add('open');
+  backdrop.classList.add('show');
+  document.querySelector('.page-wrap').classList.add('blurred');
+  drawer.setAttribute('aria-hidden', 'false');
+  backdrop.setAttribute('aria-hidden', 'false');
+  pagesInput.focus();
+}
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  backdrop.classList.remove('show');
+  document.querySelector('.page-wrap').classList.remove('blurred');
+  drawer.setAttribute('aria-hidden', 'true');
+  backdrop.setAttribute('aria-hidden', 'true');
+}
+
+backdrop.addEventListener('click', closeDrawer);
+drawerClose.addEventListener('click', closeDrawer);
+
+function renderLogs() {
+  const data = loadData();
+  const logs = data[activeDayKey] || [];
+  const total = totalForDay(logs);
+  drawerTotal.textContent = total;
+  logList.innerHTML = '';
+
+  if (!logs.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = 'No logs yet for this day.';
+    logList.appendChild(empty);
+    return;
+  }
+
+  logs
+    .slice()
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .forEach((log, idx) => {
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.style.animationDelay = `${idx * 40}ms`;
+
+      const left = document.createElement('div');
+      left.innerHTML = `<div class="log-meta">${new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>`;
+      if (log.book) {
+        const book = document.createElement('div');
+        book.className = 'log-book';
+        book.textContent = log.book;
+        left.appendChild(book);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'log-actions';
+
+      const right = document.createElement('div');
+      right.className = 'log-pages';
+      right.textContent = `${log.pages} pages`;
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'delete-log';
+      del.dataset.ts = log.timestamp;
+      del.setAttribute('aria-label', 'Delete log');
+      del.innerHTML = `<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"><path d="M6 7h12l-1 13H7L6 7Z" fill="#4a1c1c" stroke="none"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m-7 0h8" stroke="#4a1c1c" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M10 10v7M14 10v7" stroke="#fef6f0" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
+      actions.appendChild(right);
+      actions.appendChild(del);
+
+      item.appendChild(left);
+      item.appendChild(actions);
+      logList.appendChild(item);
+    });
+}
+
+logForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!activeDayKey) return;
+  const pages = parseInt(pagesInput.value, 10);
+  if (!pages || pages <= 0) {
+    pagesInput.focus();
+    return;
+  }
+  let book = '';
+  if (bookSelect.value === '__custom__') {
+    book = bookInput.value.trim();
+  } else {
+    book = bookSelect.value || '';
+  }
+  const data = loadData();
+  const logs = data[activeDayKey] || [];
+  logs.push({ pages, book, timestamp: new Date().toISOString() });
+  data[activeDayKey] = logs;
+  saveData(data);
+  pagesInput.value = '';
+  bookInput.value = '';
+  bookSelect.value = '';
+  renderLogs();
+  renderMonth();
+});
+
+logList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.delete-log');
+  if (!btn) return;
+  const ts = btn.dataset.ts;
+  const data = loadData();
+  const logs = data[activeDayKey] || [];
+  const remaining = logs.filter((log) => log.timestamp !== ts);
+  const deleted = logs.find((log) => log.timestamp === ts);
+  data[activeDayKey] = remaining;
+  saveData(data);
+  if (deleted) {
+    lastDeleted = { day: activeDayKey, log: deleted };
+    showToast();
+  }
+  renderLogs();
+  renderMonth();
+});
+
+bookSelect.addEventListener('change', () => {
+  const isCustom = bookSelect.value === '__custom__';
+  bookInput.classList.toggle('hidden', !isCustom);
+  if (isCustom) bookInput.focus();
+});
+
+addBookBtn.addEventListener('click', () => {
+  const month = monthKey(currentMonth);
+  const title = prompt('Add a book for this month:');
+  if (!title) return;
+  const books = loadBooks();
+  const list = Array.from(new Set([...(books[month] || []), title.trim()])).filter(Boolean);
+  books[month] = list;
+  saveBooks(books);
+  populateBookOptions();
+});
+
+function populateBookOptions() {
+  const books = loadBooks();
+  const list = books[monthKey(currentMonth)] || [];
+  bookSelect.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select a book';
+  bookSelect.appendChild(placeholder);
+  list.forEach((b) => {
+    const opt = document.createElement('option');
+    opt.value = b;
+    opt.textContent = b;
+    bookSelect.appendChild(opt);
+  });
+  const customOpt = document.createElement('option');
+  customOpt.value = '__custom__';
+  customOpt.textContent = 'Other…';
+  bookSelect.appendChild(customOpt);
+  bookInput.classList.toggle('hidden', true);
+}
+
+function stripTime(d) {
+  const t = new Date(d);
+  t.setHours(0, 0, 0, 0);
+  return t;
+}
+
+function getBestDayKey(data, first, last) {
+  let best = null;
+  let max = -1;
+  for (let day = 1; day <= last.getDate(); day++) {
+    const key = keyForDate(new Date(first.getFullYear(), first.getMonth(), day));
+    const total = totalForDay(data[key] || []);
+    if (total > max) {
+      max = total;
+      best = key;
+    }
+  }
+  return max > 0 ? best : null;
+}
+
+function getStreakSet(data) {
+  const set = new Set();
+  const todayDate = today();
+  let cursor = new Date(todayDate);
+  while (cursor >= startDate) {
+    const key = keyForDate(cursor);
+    const total = totalForDay(data[key] || []);
+    if (total > 0) {
+      set.add(key);
+      cursor.setDate(cursor.getDate() - 1);
+    } else {
+      if (cursor < todayDate) break;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+  }
+  return set;
+}
+
+function updateStreakChip(data) {
+  const chip = document.getElementById('streak-chip');
+  const todayDate = today();
+  let streak = 0;
+  const cursor = new Date(todayDate);
+  while (cursor >= startDate) {
+    const key = keyForDate(cursor);
+    const total = totalForDay(data[key] || []);
+    if (total > 0) streak += 1;
+    else if (cursor < todayDate) break;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  chip.textContent = `Streak: ${streak} day${streak === 1 ? '' : 's'}`;
+}
+
+function updateSummary(data, first, last) {
+  let total = 0;
+  let active = 0;
+  const days = last.getDate();
+  for (let day = 1; day <= days; day++) {
+    const key = keyForDate(new Date(first.getFullYear(), first.getMonth(), day));
+    const t = totalForDay(data[key] || []);
+    total += t;
+    if (t > 0) active += 1;
+  }
+  const avg = active ? Math.round((total / active) * 10) / 10 : 0;
+  const el = document.getElementById('totals-row');
+  el.textContent = `Total: ${total} · Avg/day: ${avg} · Active: ${active}`;
+}
+
+function showToast() {
+  clearTimeout(toastTimer);
+  let toast = document.querySelector('.toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<span>Log deleted</span><button type="button" id="undo-btn">Undo</button>`;
+    document.body.appendChild(toast);
+    toast.querySelector('#undo-btn').addEventListener('click', undoDelete);
+  }
+  toast.style.display = 'flex';
+  toastTimer = setTimeout(() => {
+    toast.style.display = 'none';
+    lastDeleted = null;
+  }, 4000);
+}
+
+function undoDelete() {
+  if (!lastDeleted) return;
+  const data = loadData();
+  const logs = data[lastDeleted.day] || [];
+  logs.push(lastDeleted.log);
+  data[lastDeleted.day] = logs;
+  saveData(data);
+  lastDeleted = null;
+  document.querySelector('.toast').style.display = 'none';
+  renderLogs();
+  renderMonth();
+}
+
+prevBtn.addEventListener('click', () => {
+  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+  renderMonth();
+});
+
+nextBtn.addEventListener('click', () => {
+  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+  renderMonth();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && drawer.classList.contains('open')) {
+    closeDrawer();
+  }
+});
+
+renderMonth();
