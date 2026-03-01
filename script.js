@@ -262,16 +262,9 @@ function openDrawer(key) {
   drawer.setAttribute('aria-hidden', 'false');
   backdrop.setAttribute('aria-hidden', 'false');
   const note = document.getElementById('future-note');
-  if (future) {
-    note?.classList.remove('hidden');
-    logForm.classList.add('disabled');
-    Array.from(logForm.elements).forEach((el) => (el.disabled = true));
-  } else {
-    note?.classList.add('hidden');
-    logForm.classList.remove('disabled');
-    Array.from(logForm.elements).forEach((el) => (el.disabled = false));
-    pagesInput.focus();
-  }
+  if (future) note?.classList.remove('hidden');
+  else note?.classList.add('hidden');
+  pagesInput.focus();
 }
 
 function closeDrawer() {
@@ -280,8 +273,6 @@ function closeDrawer() {
   document.querySelector('.page-wrap').classList.remove('blurred');
   drawer.setAttribute('aria-hidden', 'true');
   backdrop.setAttribute('aria-hidden', 'true');
-  logForm.classList.remove('disabled');
-  Array.from(logForm.elements).forEach((el) => (el.disabled = false));
 }
 
 backdrop.addEventListener('click', closeDrawer);
