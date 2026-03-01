@@ -34,6 +34,11 @@ const leaderboardModal = document.getElementById('leaderboard-modal');
 const leaderboardClose = document.getElementById('leaderboard-close');
 const leaderboardTable = document.getElementById('leaderboard-table');
 const lbBackdrop = document.getElementById('lb-backdrop');
+const modeRadios = document.querySelectorAll('input[name="log-mode"]');
+const modeAmountRow = document.querySelector('.mode-amount');
+const modeRangeRow = document.querySelector('.mode-range');
+const pageStartInput = document.getElementById('page-start');
+const pageEndInput = document.getElementById('page-end');
 
 let currentMonth = new Date(startDate);
 let activeDayKey = null;
@@ -45,11 +50,22 @@ let logsCache = {};
 let booksCache = {};
 
 function today() {
-  return stripTime(new Date());
+  const now = new Date();
+  const iso = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 10);
+  const d = new Date(`${iso}T12:00:00`);
+  return stripTime(d);
+}
+
+function formatDateKey(key) {
+  const d = new Date(`${key}T12:00:00`);
+  return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 function keyForDate(date) {
-  return date.toISOString().slice(0, 10); // YYYY-MM-DD
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
 function getMonthDays(date) {
@@ -224,9 +240,9 @@ function renderMonth() {
 
 function openDrawer(key) {
   activeDayKey = key;
-  const date = new Date(key);
+  const date = new Date(`${key}T12:00:00`);
   const future = date > today();
-  drawerDate.textContent = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  drawerDate.textContent = formatDateKey(key);
   renderLogs();
   drawer.classList.add('open');
   backdrop.classList.add('show');
@@ -374,11 +390,25 @@ logForm.addEventListener('submit', (e) => {
   e.preventDefault();
   if (!activeDayKey) return;
   if (activeDayKey > keyForDate(today())) return; // prevent future logging
-  const pages = parseInt(pagesInput.value, 10);
-  if (!pages || pages <= 0) {
-    pagesInput.focus();
-    return;
+
+  const mode = document.querySelector('input[name="log-mode"]:checked')?.value || 'amount';
+  let pages = 0;
+  if (mode === 'range') {
+    const startVal = parseInt(pageStartInput.value, 10);
+    const endVal = parseInt(pageEndInput.value, 10);
+    if (!startVal || !endVal || endVal < startVal) {
+      alert('Please enter a valid start and end page.');
+      return;
+    }
+    pages = endVal - startVal + 1;
+  } else {
+    pages = parseInt(pagesInput.value, 10);
+    if (!pages || pages <= 0) {
+      pagesInput.focus();
+      return;
+    }
   }
+
   let book = '';
   if (bookSelect.value === '__custom__') {
     book = bookInput.value.trim();
@@ -394,6 +424,8 @@ logForm.addEventListener('submit', (e) => {
     data[activeDayKey] = logs;
     saveData(data);
     pagesInput.value = '';
+    pageStartInput.value = '';
+    pageEndInput.value = '';
     bookInput.value = '';
     bookSelect.value = '';
     renderLogs();
@@ -481,6 +513,14 @@ function populateBookOptions() {
   bookSelect.appendChild(customOpt);
   bookInput.classList.toggle('hidden', true);
 }
+
+modeRadios.forEach((r) =>
+  r.addEventListener('change', () => {
+    const mode = document.querySelector('input[name="log-mode"]:checked')?.value || 'amount';
+    modeAmountRow.classList.toggle('hidden', mode !== 'amount');
+    modeRangeRow.classList.toggle('hidden', mode !== 'range');
+  })
+);
 
 function stripTime(d) {
   const t = new Date(d);
