@@ -161,6 +161,7 @@ function renderMonth() {
     const dayLogs = data[key] || [];
     const total = totalForDay(dayLogs);
     const isPast = dateObj < todayDate;
+    const isFuture = dateObj > todayDate;
 
     const cell = document.createElement('div');
     cell.className = 'day-cell';
@@ -172,6 +173,7 @@ function renderMonth() {
     if (bestDayKey === key && total > 0) extras.push('best-day');
     const streakDays = getStreakSet(data);
     if (streakDays.has(key)) extras.push('streak');
+    if (isFuture) extras.push('future');
     btn.className = `day-btn ${color} ${dayLogs.length ? 'has-logs' : ''} ${extras.join(' ')}`.trim();
     btn.style.setProperty('--tilt', `${(Math.random() * 1.2 - 0.6).toFixed(2)}deg`);
     btn.setAttribute('data-date', key);
@@ -205,6 +207,7 @@ function renderMonth() {
     grid.appendChild(cell);
 
     btn.addEventListener('click', (e) => {
+      if (isFuture) return;
       spawnPressRipple(btn, e);
       openDrawer(key);
     });
@@ -336,6 +339,7 @@ function renderLogs() {
 logForm.addEventListener('submit', (e) => {
   e.preventDefault();
   if (!activeDayKey) return;
+  if (new Date(activeDayKey) > today()) return; // prevent future logging
   const pages = parseInt(pagesInput.value, 10);
   if (!pages || pages <= 0) {
     pagesInput.focus();
