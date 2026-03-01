@@ -1,1222 +1,859 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Reading Journal 2026</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=DM+Sans:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet"/>
-<style>
-/* ── Reset & tokens ────────────────────────────────── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --paper:#f7f3ec;
-  --paper2:#ede8df;
-  --card:#fffcf6;
-  --ink:#1c1710;
-  --muted:#7a6e62;
-  --line:#d4c9b8;
-  --accent:#b8500e;
-  --accent2:#e8a04a;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reading Journal 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Nunito:wght@500;700;800&family=Gloria+Hallelujah&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+:root {
+  --paper:#f4ead7;--paper-texture:radial-gradient(rgba(0,0,0,.04) 1px,transparent 0);
+  --paper-texture-size:24px 24px;--notebook:#fffaf1;--ink:#1f1a17;--muted:#6e625a;
+  --line:#c3d6e2;--red:#e87c7c;--yellow:#f0c86b;--green:#78c49f;--purple:#a88fe8;
+  --neutral:#f2e6d4;--accent:#4a3b52;--card-outline:rgba(0,0,0,.12);
 }
-html{font-size:16px}
-body{
-  font-family:'DM Sans',system-ui,sans-serif;
-  background:var(--paper);
-  color:var(--ink);
-  min-height:100vh;
-}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:var(--ink);background:var(--paper);min-height:100vh}
 button{font-family:inherit;cursor:pointer}
-input,select,textarea{font-family:inherit}
+input,select{font-family:inherit}
 
-/* ── Layout ────────────────────────────────────────── */
-.wrap{max-width:1100px;margin:0 auto;padding:32px 20px 80px}
-
-/* ── Auth screen ───────────────────────────────────── */
-#auth-screen{
-  position:fixed;inset:0;z-index:200;
-  display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at 30% 20%,rgba(184,80,14,.08),transparent 55%),
-             radial-gradient(ellipse at 80% 80%,rgba(107,184,138,.08),transparent 50%),
-             var(--paper);
+.paper-background{
+  position:fixed;inset:0;pointer-events:none;z-index:0;mix-blend-mode:multiply;opacity:.75;
+  background-image:var(--paper-texture),
+    radial-gradient(circle at 12% 18%,rgba(255,214,170,.2),transparent 26%),
+    radial-gradient(circle at 82% 10%,rgba(189,222,255,.18),transparent 24%),
+    radial-gradient(circle at 28% 90%,rgba(255,182,193,.16),transparent 22%),
+    linear-gradient(180deg,rgba(0,0,0,.04),transparent 40%);
+  background-size:var(--paper-texture-size),auto;
 }
-#auth-screen.hidden{display:none}
+.page-wrap{position:relative;z-index:1;max-width:1200px;margin:32px auto 80px;padding:0 20px}
+
+/* AUTH */
+.auth-screen{
+  position:fixed;inset:0;display:grid;place-items:center;
+  background:radial-gradient(circle at 20% 20%,rgba(255,214,170,.35),transparent 30%),
+             radial-gradient(circle at 80% 10%,rgba(189,222,255,.28),transparent 30%),
+             rgba(0,0,0,.06);
+  z-index:100;pointer-events:auto;
+}
+.auth-screen.hidden{display:none}
 .auth-card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:20px;
-  box-shadow:0 20px 60px rgba(0,0,0,.12),0 4px 12px rgba(0,0,0,.06);
-  padding:40px 36px 36px;
-  width:min(400px,92vw);
-  text-align:center;
+  background:#fffaf1;padding:28px 26px;border-radius:16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.2);text-align:center;max-width:360px;width:90%;
 }
-.auth-card h2{
-  font-family:'Lora',serif;font-size:28px;font-weight:700;
-  color:var(--accent);margin-bottom:6px;
-}
-.auth-card p{color:var(--muted);font-size:14px;margin-bottom:24px}
-.auth-fields{display:flex;flex-direction:column;gap:10px}
-.auth-fields input{
-  padding:12px 14px;border-radius:10px;
-  border:1.5px solid var(--line);background:#fff;
-  font-size:15px;outline:none;transition:border-color .15s;
-  text-align:left;
-}
-.auth-fields input:focus{border-color:var(--accent)}
-.auth-error{
-  color:#c0392b;font-size:13px;font-weight:600;
-  padding:8px 12px;background:#fdf0ef;border-radius:8px;
-  margin-top:4px;display:none;text-align:left;
-}
-.auth-error.show{display:block}
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  border:none;border-radius:10px;font-size:15px;font-weight:600;
-  padding:11px 18px;cursor:pointer;
-  transition:transform .12s,box-shadow .12s,opacity .12s;
-  text-decoration:none;
-}
-.btn:hover{transform:translateY(-1px)}
-.btn:active{transform:translateY(0)}
-.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
-.btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(184,80,14,.3)}
-.btn-primary:hover{box-shadow:0 8px 22px rgba(184,80,14,.38)}
-.btn-ghost{
-  background:transparent;color:var(--muted);
-  border:1.5px solid var(--line);
-}
-.btn-ghost:hover{background:var(--paper2);color:var(--ink)}
-.btn-full{width:100%}
-.btn-sm{font-size:13px;padding:8px 14px;border-radius:8px}
-.auth-actions{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.auth-card h2{margin:0 0 6px;font-family:'Playfair Display',serif}
+.auth-card p{margin:0 0 14px;color:var(--muted)}
+.auth-form{display:grid;gap:10px}
+.auth-form input{padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,.14);font-size:15px}
+.auth-error{color:#b3261e;font-weight:700;font-size:13px}
 
-/* ── App shell ─────────────────────────────────────── */
-#app{display:none}
-#app.on{display:block}
+.hidden{display:none}
 
-/* ── Session pill ──────────────────────────────────── */
+/* SESSION PILL */
 .session-pill{
-  position:fixed;top:12px;right:16px;z-index:50;
-  display:flex;align-items:center;gap:10px;
-  background:var(--card);border:1px solid var(--line);
-  border-radius:999px;padding:7px 12px 7px 16px;
-  box-shadow:0 4px 14px rgba(0,0,0,.1);
-  font-size:13px;font-weight:600;
+  position:fixed;top:10px;right:12px;display:flex;gap:8px;align-items:center;
+  background:#fff5e6;padding:8px 12px;border-radius:999px;
+  border:1px solid rgba(0,0,0,.12);box-shadow:0 8px 16px rgba(0,0,0,.12);
+  font-weight:700;z-index:40;pointer-events:auto;
 }
-.session-pill.off{display:none}
-#session-name{color:var(--muted)}
 
-/* ── Page header ───────────────────────────────────── */
-.page-header{text-align:center;padding:40px 0 28px}
-.page-header .eyebrow{
-  font-size:11px;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:8px;
+/* HERO */
+.hero{text-align:center;margin-bottom:28px;position:relative}
+.hero::after{
+  content:'✶';position:absolute;right:12%;top:-10px;
+  font-family:'Gloria Hallelujah',cursive;transform:rotate(-8deg);
+  color:#c7692f;font-size:20px;opacity:.7;
 }
-.page-header h1{
-  font-family:'Lora',serif;font-size:54px;font-weight:700;
-  color:var(--ink);line-height:1.05;
+.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--muted);margin:0 0 6px}
+h1{
+  font-family:'Dancing Script','Gloria Hallelujah',cursive;
+  font-weight:700;font-size:52px;margin:0 0 2px;letter-spacing:.015em;color:var(--accent);
 }
-.page-header h1 em{font-style:italic;color:var(--accent)}
 
-/* ── Notebook ──────────────────────────────────────── */
+/* NOTEBOOK */
 .notebook{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:20px;
-  box-shadow:0 12px 40px rgba(28,23,16,.1),0 2px 8px rgba(28,23,16,.05);
-  overflow:hidden;
-  display:grid;
-  grid-template-columns:22px 1fr;
+  position:relative;background:var(--notebook);border-radius:16px;
+  box-shadow:0 16px 40px rgba(56,35,14,.2);display:grid;
+  grid-template-columns:18px 1fr;min-height:520px;overflow:hidden;
+  border:1px solid rgba(0,0,0,.06);
 }
-.nb-margin{
+.notebook-margin{
   background:
-    repeating-linear-gradient(to bottom,
-      rgba(0,80,170,.22) 0,rgba(0,80,170,.22) 1px,
-      transparent 1px,transparent 24px),
-    rgba(0,80,170,.06);
-  border-right:2.5px double rgba(0,80,170,.22);
+    repeating-linear-gradient(to bottom,rgba(0,91,187,.4),rgba(0,91,187,.4) 1px,transparent 1px,transparent 18px),
+    linear-gradient(to bottom,rgba(0,91,187,.14),rgba(0,91,187,.14));
+  border-right:2px double rgba(0,91,187,.28);
+  box-shadow:inset -6px 0 12px -8px rgba(0,0,0,.3);
 }
-.nb-body{
-  padding:28px 28px 36px 22px;
-  background-image:linear-gradient(to bottom,rgba(0,0,0,.025) 1px,transparent 1px);
-  background-size:100% 24px;
-}
-
-/* ── Month header ──────────────────────────────────── */
-.month-bar{
-  display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:10px;margin-bottom:10px;
-}
-.month-left{display:flex;align-items:center;gap:10px}
-.month-title{
-  font-family:'Lora',serif;font-size:30px;font-weight:600;color:var(--ink);
-}
-.month-navs{display:flex;gap:6px}
-.nav-arrow{
-  width:34px;height:34px;border-radius:50%;
-  border:1.5px solid var(--line);background:var(--paper);
-  font-size:18px;color:var(--muted);
-  display:flex;align-items:center;justify-content:center;
-  transition:all .15s;
-}
-.nav-arrow:hover:not(:disabled){background:var(--paper2);color:var(--ink)}
-.nav-arrow:disabled{opacity:.35;cursor:not-allowed}
-
-/* ── Stats & legend ────────────────────────────────── */
-.stats-bar{
-  display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 8px;
-}
-.chip{
-  font-size:12px;font-weight:600;padding:5px 10px;
-  border-radius:20px;border:1px solid rgba(0,0,0,.08);
-}
-.chip-streak{background:#fff8ee;color:#7a4a10;border-color:rgba(184,80,14,.2)}
-.chip-stats{background:var(--paper2);color:var(--muted)}
-.legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.lg{font-size:11px;font-weight:600;padding:4px 9px;border-radius:16px;display:flex;align-items:center;gap:4px}
-.lg::before{content:'';width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.lg-r{background:#fdf0f0;color:#7a2020}.lg-r::before{background:#e07070}
-.lg-y{background:#fdf8e8;color:#6a4c10}.lg-y::before{background:#e8c055}
-.lg-g{background:#edf7f2;color:#1a5a35}.lg-g::before{background:#6ab88a}
-.lg-p{background:#f3f0fb;color:#3d2873}.lg-p::before{background:#9b82d4}
-
-/* ── Weekdays ──────────────────────────────────────── */
-.weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:8px}
-.weekdays span{
-  text-align:center;font-size:11px;font-weight:600;
-  letter-spacing:.06em;color:var(--muted);padding:4px 0;text-transform:uppercase;
+.notebook-body{
+  padding:26px 26px 32px 22px;
+  background-image:linear-gradient(to bottom,rgba(0,0,0,.03) 1px,transparent 1px);
+  background-size:100% 28px;pointer-events:auto;
 }
 
-/* ── Day grid ──────────────────────────────────────── */
-.days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-.day-cell{aspect-ratio:1/1;position:relative}
-.day-cell.ph{visibility:hidden}
+/* MONTH HEADER */
+.month-header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:6px;text-align:center}
+.month-decor{color:rgba(0,0,0,.28);font-size:16px;font-family:'Gloria Hallelujah',cursive}
+.month-label{font-family:'Playfair Display',serif;font-size:32px;letter-spacing:-.01em;color:var(--accent)}
+.month-actions{display:flex;justify-content:flex-end}
+.month-sub{color:var(--muted);font-size:14px;text-align:center;margin-bottom:6px}
+
+/* LEGEND & META */
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;justify-content:center}
+.legend-chip{
+  padding:6px 10px;border-radius:12px;font-size:12px;font-weight:700;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);
+  background:rgba(255,250,245,.72);
+}
+.meta-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;margin:6px 0 4px}
+.streak-chip{
+  padding:6px 10px;border-radius:10px;background:#f2e6d4;
+  border:1px dashed rgba(0,0,0,.14);font-weight:800;font-family:'Gloria Hallelujah',cursive;
+}
+.totals-row{font-size:13px;color:var(--muted);padding:6px 10px;border-radius:10px;background:rgba(0,0,0,.03)}
+.leaderboard-row{display:flex;justify-content:center;margin-top:10px}
+
+/* WEEKDAYS */
+.weekday-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin:12px 0 8px;color:var(--muted);font-size:13px;letter-spacing:.04em}
+.weekday-row span{text-align:center}
+
+/* DAY GRID */
+.days-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;pointer-events:auto}
+.day-cell{width:100%;aspect-ratio:1/1;position:relative}
 .day-btn{
-  width:100%;height:100%;
-  border:1.5px solid rgba(0,0,0,.1);
-  border-radius:14px;background:var(--paper2);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;position:relative;overflow:hidden;
-  cursor:pointer;
-  transition:transform .15s,box-shadow .15s;
-  font-weight:700;
+  width:100%;height:100%;border:1.5px solid var(--card-outline);
+  border-radius:14px 16px 12px 16px;background:var(--neutral);
+  box-shadow:0 8px 18px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.4);
+  padding:10px 10px 12px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;
+  transition:transform 180ms ease-out,box-shadow 180ms ease-out,filter 120ms ease;
+  position:relative;cursor:pointer;text-align:center;
+  filter:saturate(1.05);transform:rotate(var(--tilt,-0.4deg));
+  touch-action:manipulation;pointer-events:auto;
 }
-.day-btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 20px rgba(0,0,0,.12)}
-.day-btn:active{transform:translateY(0) scale(.99)}
-.day-num{
-  position:absolute;top:7px;left:9px;
-  font-size:11px;font-weight:700;font-family:'Caveat',cursive;
-  color:rgba(0,0,0,.4);line-height:1;
+.day-btn::after{
+  content:'';position:absolute;inset:6px 8px;
+  border:1px dashed rgba(0,0,0,.2);border-radius:12px;
+  opacity:.3;transform:rotate(1deg);pointer-events:none;
 }
-.day-pages{font-size:28px;font-weight:700;line-height:1;color:rgba(0,0,0,.6)}
+.day-btn:hover{transform:translateY(-2px) scale(1.01) rotate(calc(var(--tilt,-0.4deg) - 0.2deg));box-shadow:0 10px 22px rgba(0,0,0,.16);filter:saturate(1.12)}
+.day-btn:active{transform:translateY(0) scale(.98)}
+.day-number{
+  font-weight:800;font-size:16px;letter-spacing:.06em;
+  font-family:'Gloria Hallelujah',cursive;text-transform:lowercase;
+  position:absolute;top:8px;left:10px;z-index:2;
+}
+.day-total{font-size:34px;font-family:'Nunito',sans-serif;font-weight:800;line-height:1;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.6);z-index:2}
+.bookmark{position:absolute;top:6px;right:10px;font-size:16px;z-index:2}
+.has-logs .bookmark::after{content:'…';color:#4a3b52}
+.today-ring{position:absolute;inset:6px;border-radius:12px;border:2px dashed rgba(74,59,82,.45);animation:pulse 2s ease infinite;pointer-events:none}
+@keyframes pulse{0%{transform:scale(.98);opacity:.7}50%{transform:scale(1.02);opacity:1}100%{transform:scale(.98);opacity:.7}}
+.press-ripple{position:absolute;width:160%;height:160%;left:50%;top:90%;transform:translate(-50%,-50%);background:rgba(255,255,255,.35);border-radius:50%;pointer-events:none;animation:ripple 200ms ease-out}
+@keyframes ripple{0%{transform:translate(-50%,-50%) scale(.7);opacity:.6}100%{transform:translate(-50%,-60%) scale(1);opacity:0}}
 
-/* Tiers */
-.t-r{background:linear-gradient(145deg,#fde8e8,#f5b8b8);border-color:rgba(200,80,80,.25)}
-.t-r .day-pages,.t-r .day-num{color:#5a1515}
-.t-y{background:linear-gradient(145deg,#fdf5d6,#f5d878);border-color:rgba(200,160,40,.25)}
-.t-y .day-pages,.t-y .day-num{color:#4a3505}
-.t-g{background:linear-gradient(145deg,#e4f5ec,#90d4a8);border-color:rgba(60,160,90,.25)}
-.t-g .day-pages,.t-g .day-num{color:#0f3d22}
-.t-p{background:linear-gradient(145deg,#ede8fa,#b8a0e8);border-color:rgba(100,70,200,.25)}
-.t-p .day-pages,.t-p .day-num{color:#28155a}
+/* COLOR TIERS */
+.color-red{background:repeating-linear-gradient(-8deg,#f9dede,#f9dede 10px,#e87c7c 10px,#e87c7c 18px);color:#3b1616}
+.color-yellow{background:repeating-linear-gradient(6deg,#fff1cf,#fff1cf 12px,#f0c86b 12px,#f0c86b 20px);color:#433010}
+.color-green{background:repeating-linear-gradient(-5deg,#e1f2e9,#e1f2e9 12px,#78c49f 12px,#78c49f 20px);color:#12351e}
+.color-purple{background:repeating-linear-gradient(9deg,#eee7ff,#eee7ff 12px,#a88fe8 12px,#a88fe8 20px);color:#251535}
+.color-zero{background:#f7f0e3;border:1.5px dashed rgba(0,0,0,.2);color:#6e625a;box-shadow:inset 0 1px 6px rgba(0,0,0,.06),0 6px 12px rgba(0,0,0,.05)}
+.day-btn.color-red .day-total,.day-btn.color-yellow .day-total,.day-btn.color-green .day-total,.day-btn.color-purple .day-total,.day-btn.color-zero .day-total{color:inherit}
+.day-btn.zero-past{background:#f0ede7;border-style:dashed}
+.day-btn.zero-past .crack{position:absolute;inset:12% 30%;background:linear-gradient(180deg,transparent 20%,rgba(0,0,0,.25) 50%,transparent 80%);transform:rotate(-8deg);opacity:.6}
+.day-btn.streak{box-shadow:0 0 0 2px rgba(120,196,159,.4)}
+.day-btn.best-day::before{content:'★';position:absolute;top:-6px;right:8px;font-size:14px;color:#c08cff;text-shadow:0 1px 2px rgba(0,0,0,.2);pointer-events:none}
+.scribble{position:absolute;width:90%;height:90%;pointer-events:none;opacity:.12;filter:blur(.2px);mix-blend-mode:multiply;inset:5%;z-index:0}
+.placeholder{visibility:hidden}
 
-/* States */
-.day-btn.is-today::after{
-  content:'';position:absolute;inset:3px;
-  border:2px dashed rgba(100,60,180,.4);border-radius:11px;
-  pointer-events:none;
-  animation:pulse 2s ease-in-out infinite;
+/* NAV */
+.nav{display:flex;justify-content:space-between;align-items:center;margin:16px auto 0;max-width:560px;gap:12px}
+.nav-btn{
+  flex:1;border:1px solid rgba(0,0,0,.1);background:#fffaf1;border-radius:999px;
+  padding:12px 16px;display:flex;align-items:center;justify-content:center;gap:10px;
+  font-weight:800;font-family:'Gloria Hallelujah',cursive;color:var(--ink);
+  box-shadow:0 6px 16px rgba(0,0,0,.08);cursor:pointer;
+  transition:transform 120ms ease,box-shadow 120ms ease,opacity 120ms ease;
 }
-@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
-.day-btn.is-best::before{
-  content:'★';position:absolute;top:-1px;right:6px;
-  font-size:13px;color:var(--accent2);pointer-events:none;
-}
-.day-btn.is-streak{box-shadow:0 0 0 2.5px rgba(106,184,138,.55)}
-.day-btn.is-zero{background:#f0ece4;border-style:dashed;border-color:rgba(0,0,0,.13)}
-.day-btn.is-zero .day-pages{opacity:.2}
+.nav-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.1)}
+.nav-btn:disabled{opacity:.45;cursor:not-allowed}
+.curl{font-size:18px}
 
-/* ── Bottom area ───────────────────────────────────── */
-.bottom-row{display:flex;justify-content:center;margin-top:18px;gap:10px}
-.footer-quote{
-  text-align:center;color:var(--muted);
-  font-style:italic;font-size:13px;margin-top:16px;
+/* PILL BUTTONS */
+.pill-btn{
+  border:1px solid rgba(0,0,0,.12);background:#fff5e6;color:var(--ink);
+  border-radius:999px;padding:10px 14px;font-weight:700;
+  font-family:'Gloria Hallelujah','Nunito',sans-serif;cursor:pointer;
+  box-shadow:0 6px 12px rgba(0,0,0,.08);
+  transition:transform 120ms ease,box-shadow 120ms ease;
+  display:inline-flex;align-items:center;gap:6px;
 }
+.pill-btn:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(0,0,0,.1)}
+.pill-btn:active{transform:translateY(0)}
+.pill-btn.slim{padding:8px 12px;font-size:13px}
+.pill-btn.emph{background:linear-gradient(135deg,#ffd972,#f4b35c);box-shadow:0 10px 20px rgba(244,179,92,.25);border-color:rgba(0,0,0,.08)}
+.pill-btn.full{width:100%;justify-content:center}
+.quote{text-align:center;color:var(--muted);font-style:italic;font-size:14px;margin-top:10px}
 
-/* ═══════════════════════════════════════════
-   OVERLAYS — all default display:none
-   JS adds .open → display:flex or display:block
-   No ghost overlays possible.
-═══════════════════════════════════════════ */
-.backdrop{
-  display:none;position:fixed;inset:0;z-index:90;
-  background:rgba(0,0,0,.35);backdrop-filter:blur(2px);
-  animation:fadein .18s ease;
-}
-.backdrop.open{display:block}
-@keyframes fadein{from{opacity:0}to{opacity:1}}
+/* BACKDROP */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity 160ms ease;z-index:4}
+.backdrop.show{opacity:1;pointer-events:auto}
 
-/* ── Drawer ────────────────────────────────────────── */
-#drawer{
-  display:none;
-  position:fixed;z-index:100;
-  left:50%;top:50%;
-  transform:translate(-50%,-50%);
-  width:min(940px,96vw);
-  max-height:88vh;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:22px;
-  box-shadow:0 28px 60px rgba(0,0,0,.22);
-  flex-direction:column;
-  overflow:hidden;
-  animation:popin .2s ease;
+/* DRAWER */
+.drawer{
+  position:fixed;left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(.96);
+  background:linear-gradient(90deg,#fffaf1 49.5%,#f8efdf 50%,#fffaf1 50.5%);
+  border-radius:18px;box-shadow:0 24px 52px rgba(0,0,0,.25);
+  transition:transform 220ms ease,opacity 220ms ease;
+  z-index:6;max-height:86vh;width:min(980px,96vw);
+  display:flex;flex-direction:column;
+  padding:16px 18px 18px;
+  background-image:linear-gradient(to bottom,rgba(0,0,0,.02) 1px,transparent 1px);
+  background-size:100% 30px;
+  opacity:0;pointer-events:none;overflow-y:auto;
 }
-#drawer.open{display:flex}
-@keyframes popin{
-  from{opacity:0;transform:translate(-50%,-48%) scale(.96)}
-  to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.drawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+.drawer-close{
+  position:absolute;top:10px;right:12px;width:32px;height:32px;
+  border-radius:50%;border:1px solid rgba(0,0,0,.12);
+  background:linear-gradient(135deg,#fff5e6,#f0d9a3);
+  font-weight:800;font-size:18px;cursor:pointer;
+  box-shadow:0 6px 12px rgba(0,0,0,.12);
 }
-.dr-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:18px 52px 14px 20px;
-  border-bottom:1px solid var(--line);
-  flex-shrink:0;gap:16px;
-}
-.dr-date-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:2px}
-.dr-date-val{font-family:'Lora',serif;font-size:22px;font-weight:600}
-.dr-total-wrap{text-align:right;flex-shrink:0}
-.dr-total-label{font-size:11px;color:var(--muted);display:block;margin-bottom:1px}
-.dr-total-val{font-size:32px;font-weight:700;color:var(--accent)}
-.close-btn{
-  position:absolute;top:14px;right:16px;
-  width:32px;height:32px;border-radius:50%;
-  border:1.5px solid var(--line);background:var(--paper);
-  font-size:20px;color:var(--muted);line-height:1;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .12s;
-}
-.close-btn:hover{background:var(--paper2);color:var(--ink)}
-.dr-body{
-  display:grid;grid-template-columns:1fr 1fr;
-  flex:1;min-height:0;overflow:hidden;
+.drawer-handle{width:60px;height:6px;background:rgba(0,0,0,.12);border-radius:10px;align-self:center;margin-bottom:12px}
+.drawer-header{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;padding:6px 4px 10px;border-bottom:1px solid rgba(0,0,0,.08)}
+.drawer-label{margin:0;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--muted)}
+.drawer h2{margin:2px 0 0;font-family:'Gloria Hallelujah',cursive}
+.drawer-total{text-align:right}
+.drawer-total-label{display:block;font-size:12px;color:var(--muted);font-family:'Gloria Hallelujah',cursive;letter-spacing:.04em}
+.drawer-total-value{font-size:26px;font-weight:800}
+
+/* BOOK GRID */
+.book-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:10px 2px 0;flex:1;min-height:360px;position:relative}
+.book-grid::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,rgba(0,0,0,.12),rgba(0,0,0,.02));box-shadow:0 0 8px rgba(0,0,0,.08);transform:translateX(-50%)}
+.book-grid .log-list,.book-grid .log-form{
+  background:linear-gradient(90deg,rgba(255,255,255,.9),rgba(255,255,255,.96));
+  border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+  padding:12px 12px 14px;border:1px solid rgba(0,0,0,.06);
 }
 
-/* Log list */
-.log-list{
-  padding:14px;overflow-y:auto;
-  display:flex;flex-direction:column;gap:8px;
-  border-right:1px solid var(--line);
-}
-.log-empty{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  color:var(--muted);font-size:13px;text-align:center;padding:24px;
-}
+/* LOG LIST */
+.log-list{margin:0;padding:6px 4px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px}
 .log-item{
-  display:flex;align-items:center;gap:8px;
-  padding:10px 12px;border-radius:12px;
-  border:1px solid var(--line);background:var(--paper);
-  animation:slidein .18s ease both;
+  padding:10px 12px;border:1px dashed rgba(0,0,0,.12);border-radius:10px;
+  background:rgba(255,255,255,.8);display:flex;justify-content:space-between;
+  gap:10px;align-items:center;opacity:0;transform:translateY(4px);
+  animation:log-in 220ms ease forwards;
 }
-@keyframes slidein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.log-left{flex:1;min-width:0}
-.log-time{font-size:11px;color:var(--muted)}
-.log-book{font-size:13px;color:var(--accent);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.log-pages{font-size:13px;font-weight:700;flex-shrink:0;white-space:nowrap}
-.log-del{
-  width:28px;height:28px;flex-shrink:0;
-  border-radius:7px;border:1px solid rgba(200,60,60,.2);
-  background:#fef0f0;color:#c03030;font-size:16px;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .12s;
+@keyframes log-in{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+.log-meta{color:var(--muted);font-size:13px}
+.log-pages{font-weight:700}
+.log-book{font-style:italic;color:#5c4a3d;font-size:13px}
+.log-actions{display:flex;gap:6px}
+.delete-log{
+  border:1px solid rgba(0,0,0,.12);background:#fbe0e0;color:#4a1c1c;
+  border-radius:8px;padding:6px 8px;cursor:pointer;font-weight:800;
+  font-family:'Gloria Hallelujah',cursive;
+  box-shadow:0 3px 8px rgba(0,0,0,.1);transition:transform 100ms ease,box-shadow 100ms ease;
 }
-.log-del:hover{background:#fbd8d8;transform:scale(1.08)}
+.delete-log:hover{transform:translateY(-1px);box-shadow:0 5px 10px rgba(0,0,0,.12)}
+.empty-state{text-align:center;color:var(--muted);font-size:14px;padding:20px 0}
 
-/* Form */
-.log-form{
-  padding:14px;overflow-y:auto;
-  display:flex;flex-direction:column;gap:11px;
+/* LOG FORM */
+.log-form{border-left:1px solid rgba(0,0,0,.08);padding-left:12px;display:grid;gap:10px;align-content:start}
+.form-row{display:grid;gap:6px}
+.form-row label{font-weight:700;font-size:14px}
+.form-row input,.form-row select{padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,.14);background:#fff;font-size:15px}
+.radios{display:flex;gap:12px;align-items:center}
+.range-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.range-sep{color:var(--muted);font-weight:800}
+.muted-label{color:var(--muted);font-size:12px}
+.add-btn{
+  margin-top:4px;padding:10px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,#d88b4d,#c7692f);color:#fff;font-weight:700;
+  cursor:pointer;box-shadow:0 8px 18px rgba(201,105,47,.3);
+  transition:transform 120ms ease,box-shadow 120ms ease,opacity 120ms ease;
+  width:100%;font-size:15px;
 }
-.field{display:flex;flex-direction:column;gap:5px}
-.field-label{font-size:13px;font-weight:600;color:var(--ink)}
-.field-label .dim{font-weight:400;color:var(--muted)}
-.fi{
-  padding:10px 12px;border-radius:10px;
-  border:1.5px solid var(--line);background:#fff;
-  font-size:14px;outline:none;transition:border-color .15s;width:100%;
-}
-.fi:focus{border-color:var(--accent)}
-.sel{
-  padding:10px 36px 10px 12px;border-radius:10px;
-  border:1.5px solid var(--line);background:#fff;
-  font-size:14px;outline:none;width:100%;cursor:pointer;
-  appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a6e62' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;
-}
-.sel:focus{border-color:var(--accent);outline:none}
-.mode-toggle{
-  display:flex;border-radius:10px;overflow:hidden;
-  border:1.5px solid var(--line);
-}
-.mode-opt{
-  flex:1;padding:9px;font-size:13px;font-weight:600;
-  border:none;background:transparent;color:var(--muted);transition:all .15s;
-}
-.mode-opt.on{background:var(--accent);color:#fff}
-.range-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
-.range-sep{text-align:center;color:var(--muted);font-weight:700;font-size:13px}
-.add-log-btn{
-  padding:12px;border-radius:10px;border:none;
-  background:var(--accent);color:#fff;
-  font-size:15px;font-weight:700;
-  box-shadow:0 6px 16px rgba(184,80,14,.3);
-  transition:transform .12s,box-shadow .12s,opacity .12s;
-  width:100%;margin-top:auto;
-}
-.add-log-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(184,80,14,.38)}
-.add-log-btn:active{transform:translateY(0)}
-.add-log-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.gone{display:none}
+.add-btn:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(201,105,47,.34)}
+.add-btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
 
-/* ── Leaderboard modal ─────────────────────────────── */
-#lb-modal{
-  display:none;
-  position:fixed;z-index:110;
-  left:50%;top:50%;transform:translate(-50%,-50%);
-  width:min(580px,92vw);max-height:78vh;
-  background:var(--card);border:1px solid var(--line);
-  border-radius:22px;box-shadow:0 28px 60px rgba(0,0,0,.22);
-  flex-direction:column;overflow:hidden;
-  animation:popin .2s ease;
-}
-#lb-modal.open{display:flex}
-.lb-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:18px 52px 14px 20px;border-bottom:1px solid var(--line);
-  flex-shrink:0;
-}
-.lb-head h3{font-family:'Lora',serif;font-size:22px;font-weight:600}
-.lb-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
-.lb-row{
-  display:grid;grid-template-columns:40px 1fr 110px 70px;
-  align-items:center;gap:8px;
-  padding:10px 12px;border-radius:12px;
-  border:1px solid var(--line);background:var(--paper);
-}
-.lb-rank{font-family:'Caveat',cursive;font-size:19px;font-weight:700;color:var(--muted)}
-.lb-name{font-weight:600}
-.lb-pages{font-weight:700;text-align:right;font-size:14px}
-.lb-streak{text-align:right;color:var(--muted);font-size:13px}
-.lb-msg{color:var(--muted);font-size:13px;text-align:center;padding:40px 16px}
-
-/* ── Toast ─────────────────────────────────────────── */
+/* TOAST */
 .toast{
-  display:none;
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:160;
-  background:var(--ink);color:#fff;
-  padding:10px 14px 10px 16px;border-radius:12px;
-  box-shadow:0 8px 24px rgba(0,0,0,.25);
-  align-items:center;gap:10px;font-size:14px;
-  animation:slideup .18s ease;white-space:nowrap;
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:#1f1a17;color:#fffdf7;padding:10px 14px;border-radius:12px;
+  box-shadow:0 12px 24px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center;z-index:20;
 }
-.toast.on{display:flex}
-@keyframes slideup{
-  from{opacity:0;transform:translateX(-50%) translateY(8px)}
-  to{opacity:1;transform:translateX(-50%) translateY(0)}
-}
-.undo-btn{
-  border:none;background:rgba(255,255,255,.15);color:#fff;
-  font-size:13px;font-weight:700;border-radius:7px;
-  padding:5px 10px;transition:background .12s;
-}
-.undo-btn:hover{background:rgba(255,255,255,.25)}
+.toast.hidden{display:none}
+.toast button{border:none;background:#fff5e6;color:var(--ink);font-weight:800;border-radius:8px;padding:6px 10px;cursor:pointer}
 
-/* ── Responsive ────────────────────────────────────── */
-@media(max-width:680px){
-  .wrap{padding:16px 12px 60px}
-  .page-header h1{font-size:38px}
-  .nb-body{padding:18px 14px 24px 12px}
-  .month-title{font-size:24px}
-  .days-grid{gap:5px}
-  .day-num{font-size:9px;top:4px;left:5px}
-  .day-pages{font-size:20px}
-  .day-btn{border-radius:10px}
-  .dr-body{grid-template-columns:1fr}
-  .log-list{border-right:none;border-bottom:1px solid var(--line);max-height:200px}
-  #drawer{max-height:93vh}
-  .lb-row{grid-template-columns:36px 1fr 90px}
-  .lb-streak{display:none}
+/* BLURRED */
+.blurred{filter:blur(5px);transform:scale(.99);transition:filter 180ms ease,transform 180ms ease}
+
+/* LEADERBOARD */
+.leaderboard-modal{
+  position:fixed;inset:0;margin:auto;
+  width:min(720px,90vw);height:min(520px,85vh);
+  background:#fffaf1;border-radius:18px;
+  box-shadow:0 24px 52px rgba(0,0,0,.25);
+  z-index:30;display:flex;flex-direction:column;padding:14px 16px;
+  opacity:0;pointer-events:none;       /* ← ghost overlay fix */
+  transform:translateY(12px);
+  transition:opacity 180ms ease,transform 180ms ease;
 }
-@media(max-width:420px){
-  .page-header h1{font-size:30px}
-  .day-pages{font-size:16px}
+.leaderboard-modal.show{
+  opacity:1;pointer-events:auto;       /* ← only interactive when visible */
+  transform:translateY(0);
 }
-</style>
+.leaderboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.leaderboard-table{flex:1;overflow:auto;display:grid;gap:8px;padding-right:4px}
+.lb-row{
+  display:grid;grid-template-columns:48px 1fr 120px 90px;align-items:center;
+  padding:10px 12px;border-radius:12px;
+  background:linear-gradient(90deg,rgba(255,255,255,.9),rgba(255,255,255,.96));
+  border:1px solid rgba(0,0,0,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+}
+.lb-rank{font-weight:800;font-family:'Gloria Hallelujah',cursive}
+.lb-name{font-weight:700}
+.lb-total{font-weight:800;text-align:right}
+.lb-streak{text-align:right;font-weight:700;color:#4a3b52}
+
+/* LB BACKDROP */
+.lb-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity 160ms ease;z-index:29}
+.lb-backdrop.show{opacity:1;pointer-events:auto}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .page-wrap{margin:16px auto 64px;padding:0 14px}
+  h1{font-size:46px}
+  .notebook{grid-template-columns:10px 1fr}
+  .notebook-body{padding:18px 16px 22px 14px}
+  .month-label{font-size:28px}
+  .days-grid{gap:8px}
+  .day-btn{padding:8px;border-radius:12px}
+  .day-number{font-size:13px}.day-total{font-size:30px}
+  .nav{flex-direction:column;gap:8px}.nav-btn{width:100%}
+  .drawer{max-height:88vh;padding:12px 14px 16px}
+  .drawer-total-value{font-size:24px}
+}
+@media(max-width:540px){
+  .page-wrap{padding:0 12px;margin:12px auto 56px}
+  h1{font-size:38px}
+  .book-grid{grid-template-columns:1fr}
+  .month-header{grid-template-columns:auto;grid-template-rows:auto auto auto;gap:4px}
+  .month-decor{display:none}.month-label{font-size:26px}
+  .days-grid{gap:6px}
+  .day-btn{padding:7px;border-radius:10px}.day-number{font-size:12px}.day-total{font-size:26px}
+  .notebook{grid-template-columns:8px 1fr}.notebook-body{padding:14px 12px 18px}
+  .drawer{border-radius:16px 16px 0 0;padding:12px 12px 14px}
+}
+@media(max-width:400px){
+  h1{font-size:34px}.day-total{font-size:24px}.day-number{font-size:11px}.days-grid{gap:5px}
+}
+  </style>
 </head>
 <body>
+<div class="paper-background"></div>
 
-<!-- AUTH SCREEN -->
-<div id="auth-screen">
+<!-- AUTH -->
+<div class="auth-screen" id="auth-screen">
   <div class="auth-card">
     <h2>Reading Journal</h2>
-    <p id="auth-desc">Sign in to your reading desk.</p>
-    <div class="auth-fields">
-      <input type="text"     id="a-user" placeholder="Username" autocomplete="username"/>
-      <input type="password" id="a-pass" placeholder="Password" autocomplete="current-password"/>
-      <div class="auth-error" id="auth-err"></div>
-    </div>
-    <div class="auth-actions">
-      <button class="btn btn-primary btn-full" id="auth-go">Enter</button>
-      <button class="btn btn-ghost   btn-full" id="auth-flip">Create account instead</button>
-    </div>
+    <p>Sign in to your desk.</p>
+    <form id="auth-form" class="auth-form">
+      <input type="hidden" id="auth-mode" value="login"/>
+      <input type="text"     id="auth-username" placeholder="Username" required autocomplete="username"/>
+      <input type="password" id="auth-password" placeholder="Password" required autocomplete="current-password"/>
+      <button type="submit" class="pill-btn emph full">Enter</button>
+      <button type="button" class="pill-btn full" id="toggle-auth-mode">Create account instead</button>
+      <div class="auth-error hidden" id="auth-error"></div>
+    </form>
   </div>
 </div>
 
-<!-- APP -->
-<div id="app">
-  <div class="session-pill off" id="sess-pill">
-    <span id="session-name"></span>
-    <button class="btn btn-ghost btn-sm" id="signout">Sign out</button>
+<!-- APP SHELL -->
+<div class="page-wrap hidden" id="app-shell">
+  <div class="session-pill hidden" id="auth-session">
+    <span id="auth-user-label"></span>
+    <button class="pill-btn slim" id="signout-btn">Sign out</button>
   </div>
 
-  <div class="wrap">
-    <header class="page-header">
-      <p class="eyebrow">Reading tracker · March – December 2026</p>
-      <h1>Reading <em>Journal</em></h1>
-    </header>
+  <header class="hero">
+    <p class="eyebrow">Reading tracker · March 1 – December 31, 2026</p>
+    <h1>Reading Journal</h1>
+  </header>
 
-    <div class="notebook">
-      <div class="nb-margin"></div>
-      <div class="nb-body">
-        <div class="month-bar">
-          <div class="month-left">
-            <div class="month-navs">
-              <button class="nav-arrow" id="prev">‹</button>
-              <button class="nav-arrow" id="next">›</button>
-            </div>
-            <span class="month-title" id="month-lbl">March 2026</span>
+  <main>
+    <section class="notebook" aria-live="polite">
+      <div class="notebook-margin"></div>
+      <div class="notebook-body">
+        <div class="month-header">
+          <div class="month-decor">✶</div>
+          <div class="month-label" id="month-label">March 2026</div>
+          <div class="month-actions">
+            <button id="add-book-btn" class="pill-btn slim emph">Add books this month</button>
           </div>
-          <button class="btn btn-ghost btn-sm" id="add-book">+ Add book</button>
         </div>
-
-        <div class="stats-bar">
-          <span class="chip chip-streak" id="streak">🔥 Streak: 0 days</span>
-          <span class="chip chip-stats"  id="stats">Total: 0 · Avg: 0 · Active: 0</span>
+        <div class="month-sub">Color guide · little nibble to epic binge</div>
+        <div class="legend" aria-hidden="true">
+          <span class="legend-chip color-red">0–49 · nibble</span>
+          <span class="legend-chip color-yellow">50–99 · warm up</span>
+          <span class="legend-chip color-green">100–199 · good session</span>
+          <span class="legend-chip color-purple">200+ · epic binge</span>
         </div>
-
-        <div class="legend">
-          <span class="lg lg-r">1–49 · nibble</span>
-          <span class="lg lg-y">50–99 · warm up</span>
-          <span class="lg lg-g">100–199 · good session</span>
-          <span class="lg lg-p">200+ · epic binge</span>
+        <div class="meta-row">
+          <div class="streak-chip" id="streak-chip">Streak: 0 days</div>
+          <div class="totals-row"  id="totals-row">Total: 0 · Avg/day: 0 · Active: 0</div>
         </div>
-
-        <div class="weekdays">
-          <span>Sun</span><span>Mon</span><span>Tue</span>
-          <span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        <div class="weekday-row" aria-hidden="true">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
         </div>
-
-        <div class="days-grid" id="grid"></div>
+        <div class="days-grid" id="days-grid" role="grid"></div>
       </div>
-    </div>
+    </section>
 
-    <div class="bottom-row">
-      <button class="btn btn-ghost btn-sm" id="lb-open">🏆 Leaderboard</button>
+    <div class="nav">
+      <button id="prev-month" class="nav-btn" aria-label="Previous month">
+        <span class="curl">‹</span><span>Previous month</span>
+      </button>
+      <button id="next-month" class="nav-btn" aria-label="Next month">
+        <span>Next month</span><span class="curl">›</span>
+      </button>
     </div>
-    <p class="footer-quote">"One more page, then sleep (maybe)."</p>
-  </div>
+    <div class="leaderboard-row">
+      <button id="leaderboard-btn" class="pill-btn slim">Leaderboard</button>
+    </div>
+    <p class="quote">"One more page, then sleep (maybe)."</p>
+  </main>
 </div>
 
-<!-- BACKDROPS (default display:none, .open → display:block) -->
-<div class="backdrop" id="dr-bg"></div>
-<div class="backdrop" id="lb-bg"></div>
-
-<!-- DRAWER (default display:none, .open → display:flex) -->
-<div id="drawer" role="dialog" aria-modal="true">
-  <div class="dr-head">
+<!-- DRAWER -->
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-handle"></div>
+  <button class="drawer-close" id="drawer-close" aria-label="Close">×</button>
+  <div class="drawer-header">
     <div>
-      <div class="dr-date-label">Logs for</div>
-      <div class="dr-date-val" id="dr-date">—</div>
+      <p class="drawer-label">Logs for</p>
+      <h2 id="drawer-date">March 1, 2026</h2>
     </div>
-    <div class="dr-total-wrap">
-      <span class="dr-total-label">Total pages</span>
-      <span class="dr-total-val"   id="dr-total">0</span>
+    <div class="drawer-total">
+      <span class="drawer-total-label">Total pages</span>
+      <span class="drawer-total-value" id="drawer-total">0</span>
     </div>
-    <button class="close-btn" id="dr-close" aria-label="Close">×</button>
   </div>
-
-  <div class="dr-body">
-    <!-- Left: log list -->
-    <div class="log-list" id="log-list"></div>
-
-    <!-- Right: add form -->
-    <div class="log-form">
-      <!-- Mode toggle -->
-      <div class="field">
-        <span class="field-label">Input mode</span>
-        <div class="mode-toggle">
-          <button class="mode-opt on" data-m="amount" type="button">Amount</button>
-          <button class="mode-opt"    data-m="range"  type="button">Start → Finish</button>
-        </div>
+  <div class="book-grid">
+    <div class="log-list" id="log-list" role="list"></div>
+    <form id="log-form" class="log-form" novalidate>
+      <div class="form-row radios">
+        <label><input type="radio" name="log-mode" value="amount" checked/> Amount</label>
+        <label><input type="radio" name="log-mode" value="range"/> Start → Finish</label>
       </div>
-
-      <!-- Amount row -->
-      <div class="field" id="f-amount">
-        <label class="field-label" for="f-pages">Pages read</label>
-        <input class="fi" type="number" id="f-pages" min="1" placeholder="e.g. 25"/>
+      <div class="form-row mode-amount">
+        <label for="pages">Pages</label>
+        <input type="number" id="pages" min="1" placeholder="e.g., 25"/>
       </div>
-
-      <!-- Range row -->
-      <div class="field gone" id="f-range">
-        <label class="field-label">Page range</label>
+      <div class="form-row mode-range hidden">
+        <label>Start / Finish</label>
         <div class="range-row">
-          <input class="fi" type="number" id="f-start" min="1" placeholder="Start"/>
-          <span  class="range-sep">→</span>
-          <input class="fi" type="number" id="f-end"   min="1" placeholder="End"/>
+          <input type="number" id="page-start" min="1" placeholder="Start page"/>
+          <span class="range-sep">→</span>
+          <input type="number" id="page-end"   min="1" placeholder="End page"/>
         </div>
       </div>
-
-      <!-- Book -->
-      <div class="field">
-        <label class="field-label" for="f-book">
-          Book <span class="dim">(optional)</span>
-        </label>
-        <select class="sel" id="f-book"></select>
-        <input  class="fi gone" type="text" id="f-book-custom"
-                placeholder="Type book title" style="margin-top:6px"/>
+      <div class="form-row">
+        <label for="book-select">Book <span class="muted-label">(optional)</span></label>
+        <select id="book-select"></select>
+        <input type="text" id="book" placeholder="Type book title" class="hidden"/>
       </div>
-
-      <button class="add-log-btn" id="add-log" type="button">Add log</button>
-    </div>
+      <button type="submit" class="add-btn">Add log</button>
+    </form>
   </div>
 </div>
 
-<!-- LEADERBOARD MODAL (default display:none, .open → display:flex) -->
-<div id="lb-modal" role="dialog" aria-modal="true">
-  <div class="lb-head">
-    <h3>🏆 Leaderboard</h3>
-    <button class="close-btn" id="lb-close" aria-label="Close">×</button>
+<!-- BACKDROPS -->
+<div class="backdrop"    id="backdrop"    aria-hidden="true"></div>
+<div class="lb-backdrop" id="lb-backdrop" aria-hidden="true"></div>
+
+<!-- LEADERBOARD -->
+<div class="leaderboard-modal hidden" id="leaderboard-modal" role="dialog" aria-modal="true">
+  <div class="leaderboard-header">
+    <h3>Leaderboard</h3>
+    <button class="drawer-close" id="leaderboard-close" aria-label="Close">×</button>
   </div>
-  <div class="lb-body" id="lb-body"></div>
+  <div class="leaderboard-table" id="leaderboard-table"></div>
 </div>
 
 <!-- TOAST -->
-<div class="toast" id="toast">
+<div class="toast hidden" id="toast">
   <span>Log deleted</span>
-  <button class="undo-btn" id="undo">Undo</button>
+  <button type="button" id="undo-btn">Undo</button>
 </div>
 
 <script>
-/* ────────────────────────────────────────────────────
-   CONFIG
-──────────────────────────────────────────────────── */
 window.API_BASE = 'https://readingtracker.onrender.com';
 
-const START = new Date('2026-03-01');
-const END   = new Date('2026-12-31');
+const startDate = new Date('2026-03-01');
+const endDate   = new Date('2026-12-31');
+let currentMonth = new Date(startDate);
+let activeDayKey = null, lastDeleted = null, toastTimer = null;
+let apiBase = window.API_BASE || '';
+let token = null, logsCache = {}, booksCache = {};
 
-/* ────────────────────────────────────────────────────
-   STATE
-──────────────────────────────────────────────────── */
-let curMonth    = new Date(START);
-let activeDayK  = null;
-let lastDel     = null;
-let toastTimer  = null;
-let inputMode   = 'amount';  // 'amount' | 'range'
-let authSignup  = false;
-let apiBase     = window.API_BASE || '';
-let token       = null;
-let logs        = {};  // { 'YYYY-MM-DD': [{id,pages,book,timestamp},...] }
-let books       = {};  // { 'YYYY-MM': ['Title',...] }
+// DOM
+const $ = id => document.getElementById(id);
+const monthLabel=$('month-label'),grid=$('days-grid'),prevBtn=$('prev-month'),nextBtn=$('next-month');
+const drawer=$('drawer'),drawerDate=$('drawer-date'),drawerTotal=$('drawer-total');
+const logList=$('log-list'),logForm=$('log-form'),pagesInput=$('pages'),bookInput=$('book');
+const bookSelect=$('book-select'),addBookBtn=$('add-book-btn'),backdrop=$('backdrop');
+const drawerClose=$('drawer-close'),authForm=$('auth-form'),authUsername=$('auth-username');
+const authPassword=$('auth-password'),authSession=$('auth-session'),authUserLabel=$('auth-user-label');
+const signoutBtn=$('signout-btn'),authScreen=$('auth-screen'),appShell=$('app-shell');
+const toggleAuthBtn=$('toggle-auth-mode'),authModeInput=$('auth-mode'),authError=$('auth-error');
+const leaderboardBtn=$('leaderboard-btn'),leaderboardModal=$('leaderboard-modal');
+const leaderboardClose=$('leaderboard-close'),leaderboardTable=$('leaderboard-table');
+const lbBackdrop=$('lb-backdrop'),toastEl=$('toast'),undoBtnEl=$('undo-btn');
+const modeRadios=document.querySelectorAll('input[name="log-mode"]');
+const modeAmountRow=document.querySelector('.mode-amount'),modeRangeRow=document.querySelector('.mode-range');
+const pageStartInput=$('page-start'),pageEndInput=$('page-end');
 
-/* ────────────────────────────────────────────────────
-   DOM
-──────────────────────────────────────────────────── */
-const G = id => document.getElementById(id);
-const authScreen  = G('auth-screen');
-const aUser       = G('a-user');
-const aPass       = G('a-pass');
-const authErr     = G('auth-err');
-const authGo      = G('auth-go');
-const authFlip    = G('auth-flip');
-const authDesc    = G('auth-desc');
-const appEl       = G('app');
-const sessPill    = G('sess-pill');
-const sessName    = G('session-name');
-const signoutBtn  = G('signout');
-const monthLbl    = G('month-lbl');
-const gridEl      = G('grid');
-const prevBtn     = G('prev');
-const nextBtn     = G('next');
-const streakEl    = G('streak');
-const statsEl     = G('stats');
-const addBookBtn  = G('add-book');
-const lbOpenBtn   = G('lb-open');
-const drawer      = G('drawer');
-const drBg        = G('dr-bg');
-const drClose     = G('dr-close');
-const drDate      = G('dr-date');
-const drTotal     = G('dr-total');
-const logList     = G('log-list');
-const fAmount     = G('f-amount');
-const fRange      = G('f-range');
-const fPages      = G('f-pages');
-const fStart      = G('f-start');
-const fEnd        = G('f-end');
-const fBook       = G('f-book');
-const fBookCustom = G('f-book-custom');
-const addLogBtn   = G('add-log');
-const lbModal     = G('lb-modal');
-const lbBg        = G('lb-bg');
-const lbClose     = G('lb-close');
-const lbBody      = G('lb-body');
-const toastEl     = G('toast');
-const undoBtn     = G('undo');
+// Helpers
+function today(){const d=new Date();d.setHours(0,0,0,0);return d}
+function keyForDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateFromKey(k){const[y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d,12)}
+function monthKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
+function formatDateKey(k){return dateFromKey(k).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'})}
+function getMonthDays(d){const y=d.getFullYear(),m=d.getMonth();return{first:new Date(y,m,1),last:new Date(y,m+1,0)}}
+function totalForDay(l){return(l||[]).reduce((s,x)=>s+(x.pages||0),0)}
+function colorForTotal(t){if(t>=200)return'color-purple';if(t>=100)return'color-green';if(t>=50)return'color-yellow';if(t>0)return'color-red';return'color-zero'}
 
-/* ────────────────────────────────────────────────────
-   UTILS
-──────────────────────────────────────────────────── */
-function today() {
-  const d = new Date(); d.setHours(0,0,0,0); return d;
+// Storage
+function loadFromLocal(){
+  try{logsCache=JSON.parse(localStorage.getItem('readingLogs2026')||'{}')}catch(e){logsCache={}}
+  try{booksCache=JSON.parse(localStorage.getItem('readingBooks2026')||'{}')}catch(e){booksCache={}}
 }
-function keyFor(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const dd= String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${dd}`;
+function saveLocal(){
+  localStorage.setItem('readingLogs2026',JSON.stringify(logsCache));
+  localStorage.setItem('readingBooks2026',JSON.stringify(booksCache));
 }
-function dateFrom(k) {
-  const [y,m,d] = k.split('-').map(Number);
-  return new Date(y, m-1, d, 12);
-}
-function mkey(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-function fmtKey(k) {
-  return dateFrom(k).toLocaleDateString(undefined, {month:'long',day:'numeric',year:'numeric'});
-}
-function dayTotal(k) {
-  return (logs[k]||[]).reduce((s,l)=>s+(l.pages||0), 0);
-}
-function tier(t) {
-  if(t>=200) return 't-p';
-  if(t>=100) return 't-g';
-  if(t>=50)  return 't-y';
-  if(t>0)    return 't-r';
-  return '';
-}
-function bounds(d) {
-  return {
-    first: new Date(d.getFullYear(), d.getMonth(), 1),
-    last:  new Date(d.getFullYear(), d.getMonth()+1, 0)
-  };
-}
+function loadData(){if(!Object.keys(logsCache).length)loadFromLocal();return logsCache}
+function loadBooks(){if(!Object.keys(booksCache).length)loadFromLocal();return booksCache}
+function saveData(d){logsCache=d;saveLocal()}
+function saveBooks(d){booksCache=d;saveLocal()}
 
-/* ────────────────────────────────────────────────────
-   LOCAL STORAGE
-──────────────────────────────────────────────────── */
-function loadLocal() {
-  try { logs  = JSON.parse(localStorage.getItem('rj_logs')||'{}'); }  catch(e){ logs={}; }
-  try { books = JSON.parse(localStorage.getItem('rj_books')||'{}'); } catch(e){ books={}; }
-}
-function saveLocal() {
-  localStorage.setItem('rj_logs',  JSON.stringify(logs));
-  localStorage.setItem('rj_books', JSON.stringify(books));
-}
-
-/* ────────────────────────────────────────────────────
-   API
-──────────────────────────────────────────────────── */
-async function apiFetch(path, opts={}) {
-  if(!apiBase) throw new Error('No API configured');
-  const hdrs = {'Content-Type':'application/json', ...(opts.headers||{})};
-  if(token) hdrs.Authorization = `Bearer ${token}`;
-  const ctrl = new AbortController();
-  const tid  = setTimeout(()=>ctrl.abort(), 10000);
-  try {
-    const res = await fetch(apiBase+path, {...opts, headers:hdrs, signal:ctrl.signal});
+// API
+async function apiFetch(path,opts={}){
+  if(!apiBase)throw new Error('No API base');
+  const headers={'Content-Type':'application/json',...(opts.headers||{})};
+  if(token)headers.Authorization=`Bearer ${token}`;
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),10000);
+  try{
+    const res=await fetch(apiBase+path,{...opts,headers,signal:ctrl.signal});
     clearTimeout(tid);
-    if(!res.ok){ const t=await res.text(); throw new Error(t||res.statusText); }
-    if(res.status===204) return null;
+    if(!res.ok){const t=await res.text();throw new Error(t||res.statusText)}
+    if(res.status===204)return null;
     return res.json();
-  } catch(e) {
-    clearTimeout(tid);
-    if(e.name==='AbortError') throw new Error('Request timed out');
-    throw e;
-  }
+  }catch(e){clearTimeout(tid);if(e.name==='AbortError')throw new Error('Request timed out');throw e}
 }
 
-async function syncRemote() {
-  if(!token){ loadLocal(); renderMonth(); return; }
-  try {
-    const [remLogs, remBooks] = await Promise.all([
-      apiFetch('/logs'),
-      apiFetch('/books')
-    ]);
-    logs = {};
-    remLogs.forEach(r=>{
-      if(!logs[r.date]) logs[r.date]=[];
-      logs[r.date].push({id:r.id, pages:r.pages, book:r.book, timestamp:r.created_at});
-    });
-    books = {};
-    remBooks.forEach(r=>{
-      if(!books[r.month]) books[r.month]=[];
-      books[r.month].push(r.title);
-    });
+async function syncFromRemote(){
+  if(!token){loadFromLocal();renderMonth();return}
+  try{
+    const[logs,books]=await Promise.all([apiFetch('/logs'),apiFetch('/books')]);
+    logsCache={};
+    logs.forEach(r=>{if(!logsCache[r.date])logsCache[r.date]=[];logsCache[r.date].push({id:r.id,pages:r.pages,book:r.book,timestamp:r.created_at})});
+    booksCache={};
+    books.forEach(r=>{if(!booksCache[r.month])booksCache[r.month]=[];booksCache[r.month].push(r.title)});
     saveLocal();
-  } catch(e) {
-    console.warn('Remote sync failed, using local data:', e.message);
-    loadLocal();
-  }
+  }catch(e){console.warn('Sync failed:',e.message);loadFromLocal()}
   renderMonth();
+  if(activeDayKey)renderLogs();
 }
 
-/* ────────────────────────────────────────────────────
-   AUTH
-──────────────────────────────────────────────────── */
-authFlip.addEventListener('click', ()=>{
-  authSignup = !authSignup;
-  authFlip.textContent = authSignup ? 'Back to sign in' : 'Create account instead';
-  authGo.textContent   = authSignup ? 'Create account'  : 'Enter';
-  authDesc.textContent = authSignup ? 'Create your reading desk.' : 'Sign in to your reading desk.';
-  authErr.classList.remove('show');
-});
-
-authGo.addEventListener('click', async () => {
-  const username = aUser.value.trim();
-  const password = aPass.value;
-  if(!username || !password) return;
-  authErr.classList.remove('show');
-  authGo.disabled = true;
-  authGo.textContent = '…';
-  try {
-    const path = authSignup ? '/auth/signup' : '/auth/login';
-    const data = await apiFetch(path, {
-      method: 'POST',
-      body: JSON.stringify({username, password})
-    });
-    token = data.token;
-    localStorage.setItem('rj_token', token);
-    localStorage.setItem('rj_user',  username);
-    enterApp(username);
-    await syncRemote();
-  } catch(e) {
-    authErr.textContent = e.message || 'Authentication failed';
-    authErr.classList.add('show');
-  } finally {
-    authGo.disabled = false;
-    authGo.textContent = authSignup ? 'Create account' : 'Enter';
-  }
-});
-
-[aUser, aPass].forEach(el =>
-  el.addEventListener('keydown', e => { if(e.key==='Enter') authGo.click(); })
-);
-
-signoutBtn.addEventListener('click', ()=>{
-  token = null;
-  localStorage.removeItem('rj_token');
-  localStorage.removeItem('rj_user');
-  closeDrawer();
-  closeLb();
-  exitApp();
-});
-
-function enterApp(username) {
-  authScreen.classList.add('hidden');
-  appEl.classList.add('on');
-  sessPill.classList.remove('off');
-  sessName.textContent = username;
+// Auth
+function toggleAuthUI(){
+  const a=Boolean(token);
+  authScreen.classList.toggle('hidden',a);
+  appShell.classList.toggle('hidden',!a);
+  if(a){authSession.classList.remove('hidden');authUserLabel.textContent=localStorage.getItem('rt_username')||'Logged in'}
+  else{authSession.classList.add('hidden');authPassword.value='';closeDrawer();closeLeaderboard();lbBackdrop.classList.remove('show');document.querySelector('.page-wrap')?.classList.remove('blurred')}
 }
-function exitApp() {
-  authScreen.classList.remove('hidden');
-  appEl.classList.remove('on');
-  sessPill.classList.add('off');
-  aPass.value = '';
+function rememberToken(t,u){
+  token=t;
+  if(t){localStorage.setItem('rt_token',t);if(u)localStorage.setItem('rt_username',u)}
+  else{localStorage.removeItem('rt_token');localStorage.removeItem('rt_username')}
+}
+authForm.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const username=authUsername.value.trim(),password=authPassword.value;
+  if(!username||!password)return;
+  authError.classList.add('hidden');
+  const sub=authForm.querySelector('[type="submit"]');sub.disabled=true;
+  try{
+    const mode=authModeInput.value==='signup'?'signup':'login';
+    const resp=await apiFetch(mode==='signup'?'/auth/signup':'/auth/login',{method:'POST',body:JSON.stringify({username,password})});
+    rememberToken(resp.token,username);
+    toggleAuthUI();await syncFromRemote();authPassword.value='';
+  }catch(err){authError.textContent=err.message||'Auth failed';authError.classList.remove('hidden')}
+  finally{sub.disabled=false}
+});
+toggleAuthBtn.addEventListener('click',()=>{
+  const m=authModeInput.value==='signup'?'login':'signup';
+  authModeInput.value=m;
+  toggleAuthBtn.textContent=m==='signup'?'Switch to sign in':'Create account instead';
+});
+signoutBtn.addEventListener('click',()=>{rememberToken(null);toggleAuthUI();loadFromLocal();renderMonth()});
+
+// Scribble
+function addScribble(btn){
+  const ns='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('aria-hidden','true');svg.classList.add('scribble');
+  const paths=['M8 16 Q 26 6 52 16 T 94 14','M10 74 C 32 60 54 86 76 70 88 62 94 78 92 82','M6 46 C 20 52 36 44 50 50 66 56 82 44 94 50','M12 26 Q 30 34 46 26 T 82 28'];
+  const path=document.createElementNS(ns,'path');
+  path.setAttribute('d',paths[Math.floor(Math.random()*paths.length)]);
+  path.setAttribute('stroke','rgba(0,0,0,0.24)');path.setAttribute('stroke-width','1.2');
+  path.setAttribute('fill','none');path.setAttribute('stroke-linecap','round');path.setAttribute('stroke-dasharray','2 6');
+  svg.appendChild(path);btn.appendChild(svg);
+}
+function spawnRipple(btn,e){
+  const r=document.createElement('span');r.className='press-ripple';
+  const rect=btn.getBoundingClientRect();
+  r.style.left=`${(e.clientX||rect.left+rect.width/2)-rect.left}px`;
+  r.style.top=`${(e.clientY||rect.top+rect.height*.7)-rect.top}px`;
+  btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());
 }
 
-/* ────────────────────────────────────────────────────
-   CALENDAR
-──────────────────────────────────────────────────── */
-function streakSet() {
-  const set = new Set();
-  const td  = today();
-  let cur   = new Date(td);
-  while(cur >= START) {
-    const k = keyFor(cur);
-    if(dayTotal(k) > 0) {
-      set.add(k);
-      cur.setDate(cur.getDate()-1);
-    } else {
-      if(cur < td) break;
-      cur.setDate(cur.getDate()-1);
-    }
+// Streak / Stats
+function getStreakSet(data){
+  const set=new Set(),td=today();let cur=new Date(td);
+  while(cur>=startDate){
+    const k=keyForDate(cur);
+    if(totalForDay(data[k])>0){set.add(k);cur.setDate(cur.getDate()-1)}
+    else{if(cur<td)break;cur.setDate(cur.getDate()-1)}
   }
   return set;
 }
-
-function bestKey(first, last) {
-  let best=null, max=-1;
-  for(let d=1; d<=last.getDate(); d++){
-    const k = keyFor(new Date(first.getFullYear(), first.getMonth(), d));
-    const t = dayTotal(k);
-    if(t > max){ max=t; best=k; }
-  }
-  return max>0 ? best : null;
+function updateStreakChip(data){
+  const td=today();let s=0;const cur=new Date(td);
+  while(cur>=startDate){const k=keyForDate(cur);if(totalForDay(data[k])>0)s++;else if(cur<td)break;cur.setDate(cur.getDate()-1)}
+  $('streak-chip').textContent=`Streak: ${s} day${s===1?'':'s'}`;
+}
+function updateSummary(data,first,last){
+  let total=0,active=0;
+  for(let d=1;d<=last.getDate();d++){const t=totalForDay(data[keyForDate(new Date(first.getFullYear(),first.getMonth(),d))]);total+=t;if(t>0)active++}
+  const avg=active?Math.round((total/active)*10)/10:0;
+  $('totals-row').textContent=`Total: ${total} · Avg/day: ${avg} · Active: ${active}`;
+}
+function getBestDayKey(data,first,last){
+  let best=null,max=-1;
+  for(let d=1;d<=last.getDate();d++){const k=keyForDate(new Date(first.getFullYear(),first.getMonth(),d));const t=totalForDay(data[k]);if(t>max){max=t;best=k}}
+  return max>0?best:null;
 }
 
-function renderMonth() {
-  const {first, last} = bounds(curMonth);
-  monthLbl.textContent = first.toLocaleString('default',{month:'long'}) + ' ' + first.getFullYear();
-  const tdKey = keyFor(today());
-  const strk  = streakSet();
-  const bstK  = bestKey(first, last);
-
-  // Stats
-  let total=0, active=0;
-  for(let d=1; d<=last.getDate(); d++){
-    const t = dayTotal(keyFor(new Date(first.getFullYear(), first.getMonth(), d)));
-    total += t;
-    if(t>0) active++;
+// Render month
+function renderMonth(){
+  const data=loadData();
+  const{first,last}=getMonthDays(currentMonth);
+  monthLabel.textContent=`${first.toLocaleString('default',{month:'long'})} ${first.getFullYear()}`;
+  const todayKey=keyForDate(today());
+  const bestKey=getBestDayKey(data,first,last);
+  const streakDays=getStreakSet(data);
+  updateSummary(data,first,last);updateStreakChip(data);populateBookOptions();
+  grid.innerHTML='';
+  for(let i=0;i<first.getDay();i++){const ph=document.createElement('div');ph.className='day-cell placeholder';grid.appendChild(ph)}
+  for(let d=1;d<=last.getDate();d++){
+    const dateObj=new Date(first.getFullYear(),first.getMonth(),d,12);
+    const key=keyForDate(dateObj);
+    const dayLogs=data[key]||[];
+    const total=totalForDay(dayLogs);
+    const isPast=key<todayKey;
+    const cell=document.createElement('div');cell.className='day-cell';
+    const btn=document.createElement('button');
+    const color=colorForTotal(total);const extras=[];
+    if(isPast&&total===0)extras.push('zero-past');
+    if(bestKey===key&&total>0)extras.push('best-day');
+    if(streakDays.has(key))extras.push('streak');
+    btn.className=['day-btn',color,dayLogs.length?'has-logs':'',...extras].filter(Boolean).join(' ');
+    btn.style.setProperty('--tilt',`${(Math.random()*1.2-0.6).toFixed(2)}deg`);
+    btn.setAttribute('data-date',key);btn.setAttribute('role','gridcell');btn.setAttribute('aria-label',`${key}: ${total} pages`);
+    const num=document.createElement('div');num.className='day-number';
+    const abbr=first.toLocaleString('default',{month:'short'}).toLowerCase();
+    num.textContent=`${abbr} ${d}`;
+    const tot=document.createElement('div');tot.className='day-total';
+    tot.innerHTML=`<span class="bookmark"></span><span>${total.toLocaleString()}</span>`;
+    btn.appendChild(num);btn.appendChild(tot);
+    if(isPast&&total===0){const crack=document.createElement('div');crack.className='crack';btn.appendChild(crack)}
+    addScribble(btn);
+    if(key===todayKey){const ring=document.createElement('div');ring.className='today-ring';btn.appendChild(ring)}
+    cell.appendChild(btn);grid.appendChild(cell);
+    btn.addEventListener('click',e=>{spawnRipple(btn,e);openDrawer(key)});
   }
-  const avg = active ? (total/active).toFixed(1) : 0;
-  streakEl.textContent = `🔥 Streak: ${strk.size} day${strk.size===1?'':'s'}`;
-  statsEl.textContent  = `Total: ${total.toLocaleString()} · Avg: ${avg} · Active: ${active}`;
-
-  // Nav buttons
-  prevBtn.disabled = first <= START;
-  nextBtn.disabled = last  >= END;
-
-  // Grid
-  gridEl.innerHTML = '';
-  const offset = first.getDay();
-  for(let i=0; i<offset; i++){
-    const ph = document.createElement('div');
-    ph.className = 'day-cell ph';
-    gridEl.appendChild(ph);
-  }
-
-  for(let d=1; d<=last.getDate(); d++){
-    const dateObj = new Date(first.getFullYear(), first.getMonth(), d, 12);
-    const key = keyFor(dateObj);
-    const tot = dayTotal(key);
-    const isPast = key < tdKey;
-
-    const cell = document.createElement('div');
-    cell.className = 'day-cell';
-
-    const btn = document.createElement('button');
-    const cls = ['day-btn'];
-    const t = tier(tot);
-    if(t) cls.push(t);
-    if(isPast && tot===0) cls.push('is-zero');
-    if(key===tdKey)       cls.push('is-today');
-    if(key===bstK)        cls.push('is-best');
-    if(strk.has(key))     cls.push('is-streak');
-    btn.className = cls.join(' ');
-    btn.setAttribute('aria-label', `${fmtKey(key)}: ${tot} pages`);
-
-    const numEl = document.createElement('div');
-    numEl.className = 'day-num';
-    numEl.textContent = d;
-
-    const pgEl = document.createElement('div');
-    pgEl.className = 'day-pages';
-    pgEl.textContent = tot > 0 ? tot.toLocaleString() : '';
-
-    btn.appendChild(numEl);
-    btn.appendChild(pgEl);
-    cell.appendChild(btn);
-    gridEl.appendChild(cell);
-
-    btn.addEventListener('click', () => openDrawer(key));
-  }
-
-  fillBookSelect();
+  prevBtn.disabled=first<=startDate;nextBtn.disabled=last>=endDate;
 }
 
-prevBtn.addEventListener('click', ()=>{
-  curMonth = new Date(curMonth.getFullYear(), curMonth.getMonth()-1, 1);
-  renderMonth();
-});
-nextBtn.addEventListener('click', ()=>{
-  curMonth = new Date(curMonth.getFullYear(), curMonth.getMonth()+1, 1);
-  renderMonth();
-});
-
-/* ────────────────────────────────────────────────────
-   DRAWER
-──────────────────────────────────────────────────── */
-function openDrawer(key) {
-  activeDayK = key;
-  drDate.textContent = fmtKey(key);
-  renderLogList();
-  drawer.classList.add('open');
-  drBg.classList.add('open');
-  fPages.focus();
+// Drawer
+function openDrawer(key){
+  activeDayKey=key;drawerDate.textContent=formatDateKey(key);renderLogs();
+  drawer.classList.add('open');backdrop.classList.add('show');
+  document.querySelector('.page-wrap').classList.add('blurred');
+  drawer.setAttribute('aria-hidden','false');pagesInput.focus();
 }
-function closeDrawer() {
-  drawer.classList.remove('open');
-  drBg.classList.remove('open');
+function closeDrawer(){
+  drawer.classList.remove('open');backdrop.classList.remove('show');
+  document.querySelector('.page-wrap')?.classList.remove('blurred');
+  drawer.setAttribute('aria-hidden','true');
 }
-drClose.addEventListener('click', closeDrawer);
-drBg.addEventListener('click', closeDrawer);
-document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ closeDrawer(); closeLb(); }
-});
+drawerClose.addEventListener('click',closeDrawer);
+backdrop.addEventListener('click',closeDrawer);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();closeLeaderboard()}});
 
-/* ────────────────────────────────────────────────────
-   LOG LIST
-──────────────────────────────────────────────────── */
-function renderLogList() {
-  const dayLogs = (logs[activeDayK]||[]).slice()
-    .sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp));
-  const tot = dayLogs.reduce((s,l)=>s+(l.pages||0), 0);
-  drTotal.textContent = tot.toLocaleString();
-  logList.innerHTML = '';
-
-  if(!dayLogs.length){
-    logList.innerHTML = '<div class="log-empty">No logs yet — add your first below.</div>';
-    return;
-  }
-
-  dayLogs.forEach((log, i) => {
-    const item = document.createElement('div');
-    item.className = 'log-item';
-    item.style.animationDelay = `${i*25}ms`;
-
-    const left = document.createElement('div');
-    left.className = 'log-left';
-    const time = new Date(log.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    left.innerHTML = `<div class="log-time">${time}</div>`;
-    if(log.book){
-      const bk = document.createElement('div');
-      bk.className = 'log-book';
-      bk.textContent = log.book;
-      left.appendChild(bk);
-    }
-
-    const badge = document.createElement('div');
-    badge.className = 'log-pages';
-    badge.textContent = `${log.pages} pg`;
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'log-del';
-    delBtn.type = 'button';
-    delBtn.setAttribute('aria-label','Delete log');
-    delBtn.textContent = '×';
-    delBtn.addEventListener('click', () => deleteLog(log));
-
-    item.appendChild(left);
-    item.appendChild(badge);
-    item.appendChild(delBtn);
-    logList.appendChild(item);
+// Render logs
+function renderLogs(){
+  const data=loadData();
+  const logs=(data[activeDayKey]||[]).slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  drawerTotal.textContent=totalForDay(logs);logList.innerHTML='';
+  if(!logs.length){const e=document.createElement('div');e.className='empty-state';e.textContent='No logs yet for this day.';logList.appendChild(e);return}
+  logs.forEach((log,idx)=>{
+    const item=document.createElement('div');item.className='log-item';item.style.animationDelay=`${idx*40}ms`;
+    const left=document.createElement('div');
+    left.innerHTML=`<div class="log-meta">${new Date(log.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
+    if(log.book){const bk=document.createElement('div');bk.className='log-book';bk.textContent=log.book;left.appendChild(bk)}
+    const actions=document.createElement('div');actions.className='log-actions';
+    const pages=document.createElement('div');pages.className='log-pages';pages.textContent=`${log.pages} pages`;
+    const del=document.createElement('button');del.type='button';del.className='delete-log';
+    del.dataset.ts=log.timestamp;del.dataset.id=log.id||'';del.setAttribute('aria-label','Delete log');
+    del.innerHTML=`<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"><path d="M6 7h12l-1 13H7L6 7Z" fill="#4a1c1c"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m-7 0h8" stroke="#4a1c1c" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M10 10v7M14 10v7" stroke="#fef6f0" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+    actions.appendChild(pages);actions.appendChild(del);item.appendChild(left);item.appendChild(actions);logList.appendChild(item);
   });
 }
-
-function deleteLog(log) {
-  const dayLogs = logs[activeDayK] || [];
-  const match = l => l.id ? l.id===log.id : l.timestamp===log.timestamp;
-  logs[activeDayK] = dayLogs.filter(l => !match(l));
-  saveLocal();
-  if(token && log.id){
-    apiFetch(`/logs/${log.id}`, {method:'DELETE'}).catch(console.warn);
-  }
-  lastDel = {day: activeDayK, log};
-  renderLogList();
-  renderMonth();
-  showToast();
-}
-
-/* ────────────────────────────────────────────────────
-   ADD LOG FORM
-──────────────────────────────────────────────────── */
-// Mode toggle
-document.querySelectorAll('.mode-opt').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    inputMode = btn.dataset.m;
-    if(inputMode === 'amount'){
-      fAmount.classList.remove('gone');
-      fRange.classList.add('gone');
-      fPages.focus();
-    } else {
-      fAmount.classList.add('gone');
-      fRange.classList.remove('gone');
-      fStart.focus();
-    }
-  });
+logList.addEventListener('click',e=>{
+  const btn=e.target.closest('.delete-log');if(!btn)return;
+  const ts=btn.dataset.ts,id=btn.dataset.id;
+  const data=loadData();const logs=data[activeDayKey]||[];
+  const match=l=>id?l.id===id:l.timestamp===ts;
+  data[activeDayKey]=logs.filter(l=>!match(l));
+  const deleted=logs.find(match);saveData(data);
+  if(token&&deleted?.id)apiFetch(`/logs/${deleted.id}`,{method:'DELETE'}).catch(console.warn);
+  if(deleted){lastDeleted={day:activeDayKey,log:deleted};showToast()}
+  renderLogs();renderMonth();
 });
+
+// Mode radios
+modeRadios.forEach(r=>r.addEventListener('change',()=>{
+  const m=document.querySelector('input[name="log-mode"]:checked').value;
+  modeAmountRow.classList.toggle('hidden',m!=='amount');
+  modeRangeRow.classList.toggle('hidden',m!=='range');
+  (m==='range'?pageStartInput:pagesInput).focus();
+}));
 
 // Book select
-fBook.addEventListener('change', () => {
-  const isCustom = fBook.value === '__custom__';
-  fBookCustom.classList.toggle('gone', !isCustom);
-  if(isCustom) fBookCustom.focus();
+bookSelect.addEventListener('change',()=>{
+  const c=bookSelect.value==='__custom__';
+  bookInput.classList.toggle('hidden',!c);if(c)bookInput.focus();
 });
 
-function fillBookSelect() {
-  const list = books[mkey(curMonth)] || [];
-  fBook.innerHTML = '';
-  const blank = document.createElement('option');
-  blank.value = ''; blank.textContent = '— No book —';
-  fBook.appendChild(blank);
-  list.forEach(b => {
-    const o = document.createElement('option');
-    o.value = b; o.textContent = b;
-    fBook.appendChild(o);
-  });
-  const custom = document.createElement('option');
-  custom.value = '__custom__'; custom.textContent = 'Other…';
-  fBook.appendChild(custom);
-  fBookCustom.classList.add('gone');
+// Add log
+logForm.addEventListener('submit',e=>{
+  e.preventDefault();if(!activeDayKey)return;
+  const mode=document.querySelector('input[name="log-mode"]:checked').value;
+  let pages=0;
+  if(mode==='range'){
+    const s=parseInt(pageStartInput.value,10),f=parseInt(pageEndInput.value,10);
+    if(!s||!f||f<s){alert('Enter a valid page range.');return}
+    pages=f-s+1;
+  }else{pages=parseInt(pagesInput.value,10);if(!pages||pages<=0){pagesInput.focus();return}}
+  const book=bookSelect.value==='__custom__'?bookInput.value.trim():(bookSelect.value||'');
+  const data=loadData();const dayLogs=data[activeDayKey]||[];
+  const newLog={pages,book,timestamp:new Date().toISOString()};
+  const addBtn=logForm.querySelector('.add-btn');
+  const finish=stored=>{
+    dayLogs.push(stored);data[activeDayKey]=dayLogs;saveData(data);
+    pagesInput.value='';pageStartInput.value='';pageEndInput.value='';
+    bookInput.value='';bookSelect.value='';bookInput.classList.add('hidden');
+    renderLogs();renderMonth();
+  };
+  if(token){
+    addBtn.disabled=true;addBtn.textContent='Saving…';
+    apiFetch('/logs',{method:'POST',body:JSON.stringify({date:activeDayKey,pages,book})})
+      .then(row=>finish({...newLog,id:row.id,timestamp:row.created_at}))
+      .catch(()=>finish({...newLog,id:crypto.randomUUID?.()??`${Date.now()}`}))
+      .finally(()=>{addBtn.disabled=false;addBtn.textContent='Add log'});
+  }else{finish({...newLog,id:crypto.randomUUID?.()??`${Date.now()}`})}
+});
+
+// Books
+function populateBookOptions(){
+  const books=loadBooks();const list=books[monthKey(currentMonth)]||[];
+  bookSelect.innerHTML='';
+  const ph=document.createElement('option');ph.value='';ph.textContent='Select a book';bookSelect.appendChild(ph);
+  list.forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bookSelect.appendChild(o)});
+  const c=document.createElement('option');c.value='__custom__';c.textContent='Other…';bookSelect.appendChild(c);
+  bookInput.classList.add('hidden');
 }
-
-addBookBtn.addEventListener('click', () => {
-  const title = prompt('Book title for this month:');
-  if(!title || !title.trim()) return;
-  const mk = mkey(curMonth);
-  if(!books[mk]) books[mk] = [];
-  books[mk] = Array.from(new Set([...books[mk], title.trim()]));
-  saveLocal();
-  fillBookSelect();
-  if(token){
-    apiFetch('/books', {method:'POST', body:JSON.stringify({month:mk, title:title.trim()})})
-      .catch(console.warn);
-  }
+addBookBtn.addEventListener('click',()=>{
+  const title=prompt('Add a book for this month:');if(!title)return;
+  const books=loadBooks();const mk=monthKey(currentMonth);
+  books[mk]=Array.from(new Set([...(books[mk]||[]),title.trim()])).filter(Boolean);
+  saveBooks(books);populateBookOptions();
+  if(token)apiFetch('/books',{method:'POST',body:JSON.stringify({month:mk,title:title.trim()})}).catch(console.warn);
 });
 
-addLogBtn.addEventListener('click', () => {
-  if(!activeDayK) return;
-
-  let pages = 0;
-  if(inputMode === 'range'){
-    const s = parseInt(fStart.value, 10);
-    const e = parseInt(fEnd.value, 10);
-    if(!s || !e || e < s){ alert('Enter a valid page range (end must be ≥ start).'); return; }
-    pages = e - s + 1;
-  } else {
-    pages = parseInt(fPages.value, 10);
-    if(!pages || pages <= 0){ fPages.focus(); return; }
-  }
-
-  let book = '';
-  if(fBook.value === '__custom__') book = fBookCustom.value.trim();
-  else book = fBook.value || '';
-
-  const newLog = {pages, book, timestamp: new Date().toISOString()};
-  const localId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-
-  function store(entry){
-    if(!logs[activeDayK]) logs[activeDayK] = [];
-    logs[activeDayK].push(entry);
-    saveLocal();
-    // Reset form
-    fPages.value = '';
-    fStart.value = '';
-    fEnd.value   = '';
-    fBookCustom.value = '';
-    fBook.value = '';
-    fBookCustom.classList.add('gone');
-    renderLogList();
-    renderMonth();
-  }
-
-  if(token){
-    addLogBtn.disabled = true;
-    addLogBtn.textContent = 'Saving…';
-    apiFetch('/logs', {method:'POST', body:JSON.stringify({date:activeDayK, pages, book})})
-      .then(row => store({...newLog, id:row.id, timestamp:row.created_at}))
-      .catch(() => store({...newLog, id:localId})) // API failed → save locally anyway
-      .finally(() => {
-        addLogBtn.disabled = false;
-        addLogBtn.textContent = 'Add log';
-      });
-  } else {
-    store({...newLog, id:localId});
-  }
-});
-
-// Enter key in pages field
-fPages.addEventListener('keydown', e => { if(e.key==='Enter') addLogBtn.click(); });
-
-/* ────────────────────────────────────────────────────
-   LEADERBOARD
-──────────────────────────────────────────────────── */
-lbOpenBtn.addEventListener('click', async () => {
-  lbModal.classList.add('open');
-  lbBg.classList.add('open');
-  lbBody.innerHTML = '<div class="lb-msg">Loading…</div>';
-  try {
-    const rows = await apiFetch(`/leaderboard?month=${mkey(curMonth)}`);
-    lbBody.innerHTML = '';
-    if(!rows.length){
-      lbBody.innerHTML = '<div class="lb-msg">No data yet for this month.</div>';
-      return;
-    }
-    rows.forEach((row, i) => {
-      const div = document.createElement('div');
-      div.className = 'lb-row';
-      div.innerHTML = `
-        <div class="lb-rank">#${i+1}</div>
-        <div class="lb-name">${row.username}</div>
-        <div class="lb-pages">${Number(row.total).toLocaleString()} pages</div>
-        <div class="lb-streak">⚡ ${row.streak}</div>`;
-      lbBody.appendChild(div);
+// Leaderboard
+leaderboardBtn.addEventListener('click',async()=>{
+  lbBackdrop.classList.add('show');
+  document.querySelector('.page-wrap').classList.add('blurred');
+  leaderboardModal.classList.remove('hidden');
+  leaderboardModal.classList.add('show');
+  leaderboardTable.innerHTML='Loading…';
+  try{
+    const rows=await apiFetch(`/leaderboard?month=${monthKey(currentMonth)}`);
+    leaderboardTable.innerHTML='';
+    if(!rows.length){leaderboardTable.textContent='No data yet.';return}
+    rows.forEach((row,i)=>{
+      const div=document.createElement('div');div.className='lb-row';
+      div.innerHTML=`<div class="lb-rank">#${i+1}</div><div class="lb-name">${row.username}</div><div class="lb-total">${row.total} pages</div><div class="lb-streak">⚡ ${row.streak}</div>`;
+      leaderboardTable.appendChild(div);
     });
-  } catch(e) {
-    lbBody.innerHTML = `<div class="lb-msg">${e.message || 'Failed to load leaderboard'}</div>`;
-  }
+  }catch(err){leaderboardTable.textContent=err.message||'Failed to load leaderboard'}
 });
-
-function closeLb(){
-  lbModal.classList.remove('open');
-  lbBg.classList.remove('open');
+function closeLeaderboard(){
+  leaderboardModal.classList.remove('show');
+  leaderboardModal.classList.add('hidden');
+  lbBackdrop.classList.remove('show');
+  document.querySelector('.page-wrap')?.classList.remove('blurred');
 }
-lbClose.addEventListener('click', closeLb);
-lbBg.addEventListener('click', closeLb);
+leaderboardClose.addEventListener('click',closeLeaderboard);
+lbBackdrop.addEventListener('click',closeLeaderboard);
 
-/* ────────────────────────────────────────────────────
-   TOAST / UNDO
-──────────────────────────────────────────────────── */
+// Toast / Undo
 function showToast(){
-  clearTimeout(toastTimer);
-  toastEl.classList.add('on');
-  toastTimer = setTimeout(()=>{ toastEl.classList.remove('on'); lastDel=null; }, 4500);
+  clearTimeout(toastTimer);toastEl.classList.remove('hidden');
+  toastTimer=setTimeout(()=>{toastEl.classList.add('hidden');lastDeleted=null},4500);
 }
-undoBtn.addEventListener('click', ()=>{
-  if(!lastDel) return;
-  if(!logs[lastDel.day]) logs[lastDel.day] = [];
-  logs[lastDel.day].push(lastDel.log);
-  saveLocal();
-  if(token){
-    const l = lastDel.log;
-    apiFetch('/logs', {method:'POST', body:JSON.stringify({date:lastDel.day, pages:l.pages, book:l.book})})
-      .catch(console.warn);
-  }
-  lastDel = null;
-  toastEl.classList.remove('on');
-  renderLogList();
-  renderMonth();
+undoBtnEl.addEventListener('click',()=>{
+  if(!lastDeleted)return;
+  const data=loadData();const logs=data[lastDeleted.day]||[];
+  logs.push(lastDeleted.log);data[lastDeleted.day]=logs;saveData(data);
+  if(token){const l=lastDeleted.log;apiFetch('/logs',{method:'POST',body:JSON.stringify({date:lastDeleted.day,pages:l.pages,book:l.book})}).catch(console.warn)}
+  lastDeleted=null;toastEl.classList.add('hidden');renderLogs();renderMonth();
 });
 
-/* ────────────────────────────────────────────────────
-   BOOT
-──────────────────────────────────────────────────── */
-(async function boot(){
-  loadLocal();
-  const savedToken = localStorage.getItem('rj_token');
-  const savedUser  = localStorage.getItem('rj_user');
+// Nav
+prevBtn.addEventListener('click',()=>{currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()-1,1);renderMonth()});
+nextBtn.addEventListener('click',()=>{currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+1,1);renderMonth()});
 
-  if(savedToken){
-    token = savedToken;
-    enterApp(savedUser || 'Reader');
-    await syncRemote();
-  }
-  // If no token, stay on auth screen (do not auto-enter)
+// Boot
+(async function boot(){
+  loadFromLocal();
+  const saved=localStorage.getItem('rt_token');
+  if(saved)token=saved;
+  toggleAuthUI();
+  await syncFromRemote();
+  renderMonth();
 })();
 </script>
 </body>
