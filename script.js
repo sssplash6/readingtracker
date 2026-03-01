@@ -194,7 +194,6 @@ function renderMonth() {
     const dayLogs = data[key] || [];
     const total = totalForDay(dayLogs);
     const isPast = key < todayKey;
-    const isFuture = key > todayKey;
 
     const cell = document.createElement('div');
     cell.className = 'day-cell';
@@ -206,7 +205,6 @@ function renderMonth() {
     if (bestDayKey === key && total > 0) extras.push('best-day');
     const streakDays = getStreakSet(data);
     if (streakDays.has(key)) extras.push('streak');
-    if (isFuture) extras.push('future');
     btn.className = `day-btn ${color} ${dayLogs.length ? 'has-logs' : ''} ${extras.join(' ')}`.trim();
     btn.style.setProperty('--tilt', `${(Math.random() * 1.2 - 0.6).toFixed(2)}deg`);
     btn.setAttribute('data-date', key);
@@ -240,7 +238,6 @@ function renderMonth() {
     grid.appendChild(cell);
 
     btn.addEventListener('click', (e) => {
-      if (isFuture) return;
       spawnPressRipple(btn, e);
       openDrawer(key);
     });
@@ -262,8 +259,7 @@ function openDrawer(key) {
   drawer.setAttribute('aria-hidden', 'false');
   backdrop.setAttribute('aria-hidden', 'false');
   const note = document.getElementById('future-note');
-  if (future) note?.classList.remove('hidden');
-  else note?.classList.add('hidden');
+  note?.classList.add('hidden');
   pagesInput.focus();
 }
 
@@ -395,7 +391,7 @@ function renderLogs() {
 logForm.addEventListener('submit', (e) => {
   e.preventDefault();
   if (!activeDayKey) return;
-  if (activeDayKey > keyForDate(today())) return; // prevent future logging
+  // future logging allowed for demo
 
   const mode = document.querySelector('input[name="log-mode"]:checked')?.value || 'amount';
   let pages = 0;

@@ -458,13 +458,6 @@ body.dark .notebook-body { background-image: linear-gradient(to bottom, rgba(255
   color: inherit;
 }
 
-.day-btn.future {
-  opacity: 0.45;
-  cursor: not-allowed;
-  box-shadow: none;
-  filter: grayscale(0.4);
-}
-
 .day-btn.zero-past {
   background: #f0ede7;
   border-style: dashed;

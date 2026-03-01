@@ -110,7 +110,7 @@
           <input type="number" id="pages" name="pages" min="1" required placeholder="e.g., 25" />
         </div>
         <div class="form-row mode-range hidden">
-          <label>Start / Finish</label>
+          <label for="page-start">Start / Finish</label>
           <div class="range-row">
             <input type="number" id="page-start" min="1" placeholder="Start page" />
             <span class="range-sep">→</span>
@@ -138,7 +138,9 @@
     <div class="leaderboard-table" id="leaderboard-table"></div>
   </div>
 
-  <script src="config.js"></script>
+  <script>
+    window.API_BASE = 'https://readingtracker.onrender.com';
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
