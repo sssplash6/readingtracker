@@ -62,7 +62,8 @@ body {
   display: grid;
   place-items: center;
   background: radial-gradient(circle at 20% 20%, rgba(255,214,170,0.35), transparent 30%), radial-gradient(circle at 80% 10%, rgba(189,222,255,0.28), transparent 30%), rgba(0,0,0,0.06);
-  z-index: 20;
+  z-index: 100;
+  pointer-events: auto;
 }
 
 .auth-card {

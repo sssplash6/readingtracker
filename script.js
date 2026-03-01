@@ -294,10 +294,10 @@ leaderboardBtn?.addEventListener('click', async () => {
 });
 
 function closeLeaderboard() {
-  leaderboardModal.classList.remove('show');
-  leaderboardModal.classList.add('hidden');
-  lbBackdrop.classList.add('hidden');
-  document.querySelector('.page-wrap').classList.remove('blurred');
+  leaderboardModal?.classList.remove('show');
+  leaderboardModal?.classList.add('hidden');
+  lbBackdrop?.classList.add('hidden');
+  document.querySelector('.page-wrap')?.classList.remove('blurred');
 }
 
 leaderboardClose?.addEventListener('click', closeLeaderboard);
@@ -487,6 +487,11 @@ function toggleAuthUI() {
   } else {
     authSession.classList.add('hidden');
     authPassword.value = '';
+    // ensure overlays are closed
+    closeDrawer();
+    closeLeaderboard();
+    lbBackdrop?.classList.add('hidden');
+    document.querySelector('.page-wrap')?.classList.remove('blurred');
   }
 }
 
