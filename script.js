@@ -421,6 +421,8 @@ logForm.addEventListener('submit', (e) => {
   const logs = data[activeDayKey] || [];
   const newLog = { pages, book, timestamp: new Date().toISOString() };
 
+  const addBtn = logForm.querySelector('.add-btn');
+
   const finish = (stored) => {
     logs.push(stored);
     data[activeDayKey] = logs;
@@ -435,6 +437,7 @@ logForm.addEventListener('submit', (e) => {
   };
 
   if (token) {
+    if (addBtn) { addBtn.disabled = true; addBtn.textContent = 'Saving…'; }
     apiFetch('/logs', {
       method: 'POST',
       body: JSON.stringify({ date: activeDayKey, pages, book }),
@@ -442,7 +445,10 @@ logForm.addEventListener('submit', (e) => {
       .then((row) => {
         finish({ ...newLog, id: row.id, timestamp: row.created_at });
       })
-      .catch((err) => alert(err.message || 'Could not save log'));
+      .catch((err) => alert(err.message || 'Could not save log'))
+      .finally(() => {
+        if (addBtn) { addBtn.disabled = false; addBtn.textContent = 'Add log'; }
+      });
   } else {
     const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
     finish({ ...newLog, id });
@@ -557,13 +563,22 @@ async function apiFetch(path, options = {}) {
   if (!apiBase) throw new Error('API_BASE not set in config.js');
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${apiBase}${path}`, { ...options, headers });
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(msg || res.statusText);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
+  try {
+    const res = await fetch(`${apiBase}${path}`, { ...options, headers, signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || res.statusText);
+    }
+    if (res.status === 204) return null;
+    return res.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') throw new Error('Request timed out. Check your connection.');
+    throw err;
   }
-  if (res.status === 204) return null;
-  return res.json();
 }
 
 async function syncFromRemote() {

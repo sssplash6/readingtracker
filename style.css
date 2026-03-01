@@ -585,6 +585,7 @@ body.dark .nav-btn { background: #352c25; border-color: rgba(255,255,255,0.12); 
   background-size: 100% 30px;
   opacity: 0;
   pointer-events: none;
+  overflow-y: auto;
 }
 
 .drawer.open {
