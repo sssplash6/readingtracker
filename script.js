@@ -26,6 +26,9 @@ const authUserLabel = document.getElementById('auth-user-label');
 const signoutBtn = document.getElementById('signout-btn');
 const authScreen = document.getElementById('auth-screen');
 const appShell = document.getElementById('app-shell');
+const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
+const authModeInput = document.getElementById('auth-mode');
+const authError = document.getElementById('auth-error');
 
 let currentMonth = new Date(startDate);
 let activeDayKey = null;
@@ -240,29 +243,30 @@ authForm?.addEventListener('submit', async (e) => {
   const username = authUsername.value.trim();
   const password = authPassword.value;
   if (!username || !password) return;
+  authError?.classList.add('hidden');
   try {
-    // try login
-    const login = await apiFetch('/auth/login', {
+    const mode = authModeInput?.value === 'signup' ? 'signup' : 'login';
+    const path = mode === 'signup' ? '/auth/signup' : '/auth/login';
+    const resp = await apiFetch(path, {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
-    rememberToken(login.token, username);
-  } catch (_err) {
-    // try signup
-    try {
-      const signup = await apiFetch('/auth/signup', {
-        method: 'POST',
-        body: JSON.stringify({ username, password }),
-      });
-      rememberToken(signup.token, username);
-    } catch (err2) {
-      alert(err2.message || 'Auth failed');
-      return;
-    }
+    rememberToken(resp.token, username);
+  }
+  catch (err) {
+    authError.textContent = err.message || 'Auth failed';
+    authError.classList.remove('hidden');
+    return;
   }
   toggleAuthUI();
   await syncFromRemote();
   authPassword.value = '';
+});
+
+toggleAuthModeBtn?.addEventListener('click', () => {
+  const mode = authModeInput.value === 'signup' ? 'login' : 'signup';
+  authModeInput.value = mode;
+  toggleAuthModeBtn.textContent = mode === 'signup' ? 'Switch to sign in' : 'Create account instead';
 });
 
 signoutBtn?.addEventListener('click', async () => {

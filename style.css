@@ -91,6 +91,7 @@ body {
 }
 
 .hidden { display: none; }
+.auth-error { color: #b3261e; font-weight: 700; font-size: 13px; }
 
 .session-pill {
   position: absolute;
