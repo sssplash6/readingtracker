@@ -836,12 +836,14 @@ body.dark .nav-btn { background: #352c25; border-color: rgba(255,255,255,0.12); 
   flex-direction: column;
   padding: 14px 16px;
   opacity: 0;
+  pointer-events: none;
   transform: translateY(12px);
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
 .leaderboard-modal.show {
   opacity: 1;
+  pointer-events: auto;
   transform: translateY(0);
 }
 

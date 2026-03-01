@@ -422,7 +422,6 @@ logForm.addEventListener('submit', (e) => {
   const newLog = { pages, book, timestamp: new Date().toISOString() };
 
   const addBtn = logForm.querySelector('.add-btn');
-
   const finish = (stored) => {
     logs.push(stored);
     data[activeDayKey] = logs;
@@ -445,7 +444,11 @@ logForm.addEventListener('submit', (e) => {
       .then((row) => {
         finish({ ...newLog, id: row.id, timestamp: row.created_at });
       })
-      .catch((err) => alert(err.message || 'Could not save log'))
+      .catch(() => {
+        // API failed — save locally so the log isn't lost
+        const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+        finish({ ...newLog, id });
+      })
       .finally(() => {
         if (addBtn) { addBtn.disabled = false; addBtn.textContent = 'Add log'; }
       });
@@ -560,14 +563,14 @@ function toggleAuthUI() {
 }
 
 async function apiFetch(path, options = {}) {
-  if (!apiBase) throw new Error('API_BASE not set in config.js');
+  if (!apiBase) throw new Error('API_BASE not set');
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
+  const tid = setTimeout(() => controller.abort(), 10000);
   try {
     const res = await fetch(`${apiBase}${path}`, { ...options, headers, signal: controller.signal });
-    clearTimeout(timeoutId);
+    clearTimeout(tid);
     if (!res.ok) {
       const msg = await res.text();
       throw new Error(msg || res.statusText);
@@ -575,8 +578,8 @@ async function apiFetch(path, options = {}) {
     if (res.status === 204) return null;
     return res.json();
   } catch (err) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError') throw new Error('Request timed out. Check your connection.');
+    clearTimeout(tid);
+    if (err.name === 'AbortError') throw new Error('Request timed out.');
     throw err;
   }
 }
