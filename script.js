@@ -165,8 +165,8 @@ function renderMonth() {
     const key = keyForDate(dateObj);
     const dayLogs = data[key] || [];
     const total = totalForDay(dayLogs);
-    const isPast = dateObj < todayDate;
-    const isFuture = dateObj > todayDate;
+    const isPast = key < todayKey;
+    const isFuture = key > todayKey;
 
     const cell = document.createElement('div');
     cell.className = 'day-cell';
@@ -225,6 +225,7 @@ function renderMonth() {
 function openDrawer(key) {
   activeDayKey = key;
   const date = new Date(key);
+  const future = date > today();
   drawerDate.textContent = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
   renderLogs();
   drawer.classList.add('open');
@@ -232,7 +233,17 @@ function openDrawer(key) {
   document.querySelector('.page-wrap').classList.add('blurred');
   drawer.setAttribute('aria-hidden', 'false');
   backdrop.setAttribute('aria-hidden', 'false');
-  pagesInput.focus();
+  const note = document.getElementById('future-note');
+  if (future) {
+    note?.classList.remove('hidden');
+    logForm.classList.add('disabled');
+    Array.from(logForm.elements).forEach((el) => (el.disabled = true));
+  } else {
+    note?.classList.add('hidden');
+    logForm.classList.remove('disabled');
+    Array.from(logForm.elements).forEach((el) => (el.disabled = false));
+    pagesInput.focus();
+  }
 }
 
 function closeDrawer() {
@@ -362,7 +373,7 @@ function renderLogs() {
 logForm.addEventListener('submit', (e) => {
   e.preventDefault();
   if (!activeDayKey) return;
-  if (new Date(activeDayKey) > today()) return; // prevent future logging
+  if (activeDayKey > keyForDate(today())) return; // prevent future logging
   const pages = parseInt(pagesInput.value, 10);
   if (!pages || pages <= 0) {
     pagesInput.focus();

@@ -111,6 +111,16 @@ body {
   pointer-events: auto;
 }
 
+.future-note {
+  margin: 8px 4px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(0,0,0,0.15);
+  background: #f7f0e3;
+  color: #4a3b52;
+  font-weight: 700;
+}
+
 
 .hero {
   text-align: center;
@@ -182,6 +192,7 @@ body.dark .notebook-body { background-image: linear-gradient(to bottom, rgba(255
       transparent 1px
     );
   background-size: 100% 28px;
+  pointer-events: auto;
 }
 
 .month-header {
@@ -282,6 +293,7 @@ body.dark .notebook-body { background-image: linear-gradient(to bottom, rgba(255
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px;
+  pointer-events: auto;
 }
 
 .day-cell {
@@ -311,6 +323,8 @@ body.dark .notebook-body { background-image: linear-gradient(to bottom, rgba(255
   text-align: center;
   filter: saturate(1.05);
   transform: rotate(var(--tilt, -0.4deg));
+  touch-action: manipulation;
+  pointer-events: auto;
 }
 
 .day-btn::after {
@@ -875,7 +889,7 @@ body.dark .nav-btn { background: #352c25; border-color: rgba(255,255,255,0.12); 
   .legend-chip { font-size: 11px; padding: 5px 8px; }
   .weekday-row { font-size: 12px; }
   .days-grid { gap: 8px; }
-  .day-btn { padding: 8px; border-radius: 12px; }
+  .day-btn { padding: 8px; border-radius: 12px; min-height: 54px; }
   .day-number { font-size: 13px; }
   .day-total { font-size: 30px; }
   .nav { flex-direction: column; gap: 8px; }
@@ -896,7 +910,7 @@ body.dark .nav-btn { background: #352c25; border-color: rgba(255,255,255,0.12); 
   .legend-chip { font-size: 10.5px; padding: 4px 7px; }
   .weekday-row { font-size: 11px; }
   .days-grid { gap: 6px; }
-  .day-btn { padding: 7px; border-radius: 10px; }
+  .day-btn { padding: 7px; border-radius: 10px; min-height: 52px; }
   .day-number { font-size: 12px; }
   .day-total { font-size: 26px; }
   .notebook { grid-template-columns: 8px 1fr; }
