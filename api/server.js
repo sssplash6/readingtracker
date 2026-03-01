@@ -136,6 +136,73 @@ app.delete('/logs/:id', authMiddleware, async (req, res) => {
   res.status(204).end();
 });
 
+app.get('/leaderboard', authMiddleware, async (req, res) => {
+  // month format: YYYY-MM, default current month
+  const month =
+    req.query.month ||
+    new Date().toISOString().slice(0, 7); // current month
+  const client = await pool.connect();
+  try {
+    // totals per user for month
+    const totals = await client.query(
+      `select u.id, u.username, sum(l.pages) as total
+       from users u
+       join logs l on l.user_id = u.id
+       where l.date like $1
+       group by u.id, u.username
+       order by total desc nulls last`,
+      [`${month}%`]
+    );
+
+    // streak calculation: need logs up to today
+    const streakRows = await client.query(
+      `select u.id, u.username, l.date, sum(l.pages) as pages
+       from users u
+       join logs l on l.user_id = u.id
+       where l.date <= $1
+       group by u.id, u.username, l.date`,
+      [new Date().toISOString().slice(0, 10)]
+    );
+
+    const streakMap = new Map();
+    const today = new Date().toISOString().slice(0, 10);
+    const todayDate = new Date(today);
+
+    const userDates = new Map();
+    streakRows.rows.forEach((r) => {
+      if (!userDates.has(r.id)) userDates.set(r.id, new Map());
+      userDates.get(r.id).set(r.date, Number(r.pages));
+    });
+
+    userDates.forEach((dateMap, userId) => {
+      let streak = 0;
+      const cursor = new Date(todayDate);
+      while (true) {
+        const key = cursor.toISOString().slice(0, 10);
+        const val = dateMap.get(key) || 0;
+        if (val > 0) {
+          streak += 1;
+          cursor.setDate(cursor.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      streakMap.set(userId, streak);
+    });
+
+    const combined = totals.rows.map((row) => ({
+      user_id: row.id,
+      username: row.username,
+      total: Number(row.total || 0),
+      streak: streakMap.get(row.id) || 0,
+    }));
+
+    res.json(combined);
+  } finally {
+    client.release();
+  }
+});
+
 app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(500).json({ error: 'Server error' });

@@ -29,6 +29,11 @@ const appShell = document.getElementById('app-shell');
 const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
 const authModeInput = document.getElementById('auth-mode');
 const authError = document.getElementById('auth-error');
+const leaderboardBtn = document.getElementById('leaderboard-btn');
+const leaderboardModal = document.getElementById('leaderboard-modal');
+const leaderboardClose = document.getElementById('leaderboard-close');
+const leaderboardTable = document.getElementById('leaderboard-table');
+const lbBackdrop = document.getElementById('lb-backdrop');
 
 let currentMonth = new Date(startDate);
 let activeDayKey = null;
@@ -279,6 +284,24 @@ signoutBtn?.addEventListener('click', async () => {
   renderMonth();
   if (activeDayKey) renderLogs();
 });
+
+leaderboardBtn?.addEventListener('click', async () => {
+  lbBackdrop.classList.remove('hidden');
+  document.querySelector('.page-wrap').classList.add('blurred');
+  await renderLeaderboard();
+  leaderboardModal.classList.add('show');
+  leaderboardModal.classList.remove('hidden');
+});
+
+function closeLeaderboard() {
+  leaderboardModal.classList.remove('show');
+  leaderboardModal.classList.add('hidden');
+  lbBackdrop.classList.add('hidden');
+  document.querySelector('.page-wrap').classList.remove('blurred');
+}
+
+leaderboardClose?.addEventListener('click', closeLeaderboard);
+lbBackdrop?.addEventListener('click', closeLeaderboard);
 
 function renderLogs() {
   const data = loadData();
@@ -640,6 +663,31 @@ function undoDelete() {
   document.querySelector('.toast').style.display = 'none';
   renderLogs();
   renderMonth();
+}
+
+async function renderLeaderboard() {
+  leaderboardTable.innerHTML = 'Loading...';
+  try {
+    const month = monthKey(currentMonth);
+    const rows = await apiFetch(`/leaderboard?month=${month}`);
+    leaderboardTable.innerHTML = '';
+    rows.forEach((row, idx) => {
+      const div = document.createElement('div');
+      div.className = 'lb-row';
+      div.innerHTML = `
+        <div class="lb-rank">#${idx + 1}</div>
+        <div class="lb-name">${row.username}</div>
+        <div class="lb-total">${row.total} pages</div>
+        <div class="lb-streak">⚡ ${row.streak}</div>
+      `;
+      leaderboardTable.appendChild(div);
+    });
+    if (!rows.length) {
+      leaderboardTable.textContent = 'No data yet.';
+    }
+  } catch (err) {
+    leaderboardTable.textContent = err.message || 'Failed to load leaderboard';
+  }
 }
 
 prevBtn.addEventListener('click', () => {

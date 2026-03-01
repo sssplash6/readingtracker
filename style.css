@@ -251,6 +251,12 @@ body.dark .notebook-body { background-image: linear-gradient(to bottom, rgba(255
   background: rgba(0,0,0,0.03);
 }
 
+.leaderboard-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
 .month-sub {
   color: var(--muted);
   font-size: 14px;
@@ -802,6 +808,60 @@ body.dark .nav-btn { background: #352c25; border-color: rgba(255,255,255,0.12); 
   transform: scale(0.99);
   transition: filter 180ms ease, transform 180ms ease;
 }
+
+.leaderboard-modal {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(720px, 90vw);
+  height: min(520px, 85vh);
+  background: #fffaf1;
+  border-radius: 18px;
+  box-shadow: 0 24px 52px rgba(0,0,0,0.25);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.leaderboard-modal.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.leaderboard-table {
+  flex: 1;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 120px 90px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,0.96));
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.lb-rank { font-weight: 800; font-family: 'Gloria Hallelujah', cursive; }
+.lb-name { font-weight: 700; }
+.lb-total { font-weight: 800; text-align: right; }
+.lb-streak { text-align: right; font-weight: 700; color: #4a3b52; }
 
 @media (max-width: 768px) {
   .page-wrap { margin: 16px auto 64px; padding: 0 14px; }

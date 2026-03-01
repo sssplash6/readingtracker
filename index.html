@@ -75,6 +75,9 @@
           <span class="curl">›</span>
         </button>
       </div>
+      <div class="leaderboard-row">
+        <button id="leaderboard-btn" class="pill-btn slim">Leaderboard</button>
+      </div>
       <p class="quote">“One more page, then sleep (maybe).”</p>
     </main>
   </div>
@@ -112,6 +115,15 @@
   </div>
 
   <div class="backdrop" id="backdrop" tabindex="-1" aria-hidden="true"></div>
+  <div class="backdrop hidden" id="lb-backdrop" tabindex="-1" aria-hidden="true"></div>
+
+  <div class="leaderboard-modal hidden" id="leaderboard-modal" role="dialog" aria-modal="true">
+    <div class="leaderboard-header">
+      <h3>Leaderboard</h3>
+      <button class="drawer-close" id="leaderboard-close" aria-label="Close leaderboard">×</button>
+    </div>
+    <div class="leaderboard-table" id="leaderboard-table"></div>
+  </div>
 
   <script src="config.js"></script>
   <script src="script.js"></script>
