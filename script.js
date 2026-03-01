@@ -50,16 +50,13 @@ let logsCache = {};
 let booksCache = {};
 
 function today() {
-  const now = new Date();
-  const iso = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 10);
-  const d = new Date(`${iso}T12:00:00`);
-  return stripTime(d);
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
 
 function formatDateKey(key) {
-  const d = new Date(`${key}T12:00:00`);
+  const d = new Date(`${key}T00:00:00`);
   return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
@@ -72,8 +69,9 @@ function resetOverlays() {
 }
 
 function keyForDate(date) {
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 10); // YYYY-MM-DD
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  return copy.toISOString().slice(0, 10).split('T')[0]; // YYYY-MM-DD
 }
 
 function getMonthDays(date) {
