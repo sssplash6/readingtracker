@@ -56,7 +56,7 @@ function today() {
 }
 
 function formatDateKey(key) {
-  const d = new Date(`${key}T00:00:00`);
+  const d = dateFromKey(key);
   return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
@@ -69,9 +69,15 @@ function resetOverlays() {
 }
 
 function keyForDate(date) {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  return copy.toISOString().slice(0, 10).split('T')[0]; // YYYY-MM-DD
+  const y = date.getFullYear();
+  const m = `${date.getMonth() + 1}`.padStart(2, '0');
+  const d = `${date.getDate()}`.padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function dateFromKey(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0); // local noon to avoid DST edge
 }
 
 function getMonthDays(date) {
@@ -183,7 +189,7 @@ function renderMonth() {
   }
 
   for (let day = 1; day <= last.getDate(); day++) {
-    const dateObj = new Date(first.getFullYear(), first.getMonth(), day);
+    const dateObj = new Date(first.getFullYear(), first.getMonth(), day, 12);
     const key = keyForDate(dateObj);
     const dayLogs = data[key] || [];
     const total = totalForDay(dayLogs);
@@ -246,8 +252,8 @@ function renderMonth() {
 
 function openDrawer(key) {
   activeDayKey = key;
-  const date = new Date(`${key}T12:00:00`);
-  const future = date > today();
+  const date = dateFromKey(key);
+  const future = key > keyForDate(today());
   drawerDate.textContent = formatDateKey(key);
   renderLogs();
   drawer.classList.add('open');
