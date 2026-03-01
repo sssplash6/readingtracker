@@ -771,6 +771,10 @@ body.dark .nav-btn { background: #352c25; border-color: rgba(255,255,255,0.12); 
   gap: 10px;
   align-content: start;
 }
+.log-form.disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
 
 .form-row { display: grid; gap: 6px; }
 .form-row label { font-weight: 700; font-size: 14px; }

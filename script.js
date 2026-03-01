@@ -63,6 +63,14 @@ function formatDateKey(key) {
   return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+function resetOverlays() {
+  closeDrawer();
+  closeLeaderboard();
+  lbBackdrop?.classList.add('hidden');
+  backdrop?.classList.remove('show');
+  document.querySelector('.page-wrap')?.classList.remove('blurred');
+}
+
 function keyForDate(date) {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10); // YYYY-MM-DD
@@ -268,6 +276,8 @@ function closeDrawer() {
   document.querySelector('.page-wrap').classList.remove('blurred');
   drawer.setAttribute('aria-hidden', 'true');
   backdrop.setAttribute('aria-hidden', 'true');
+  logForm.classList.remove('disabled');
+  Array.from(logForm.elements).forEach((el) => (el.disabled = false));
 }
 
 backdrop.addEventListener('click', closeDrawer);
@@ -307,6 +317,7 @@ toggleAuthModeBtn?.addEventListener('click', () => {
 signoutBtn?.addEventListener('click', async () => {
   rememberToken(null);
   toggleAuthUI();
+  resetOverlays();
   loadFromLocal();
   renderMonth();
   if (activeDayKey) renderLogs();
@@ -519,6 +530,11 @@ modeRadios.forEach((r) =>
     const mode = document.querySelector('input[name="log-mode"]:checked')?.value || 'amount';
     modeAmountRow.classList.toggle('hidden', mode !== 'amount');
     modeRangeRow.classList.toggle('hidden', mode !== 'range');
+    if (mode === 'range') {
+      pageStartInput.focus();
+    } else {
+      pagesInput.focus();
+    }
   })
 );
 
