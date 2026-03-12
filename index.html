@@ -547,13 +547,16 @@ function saveBooks(d){booksCache=d;saveLocal()}
 async function apiFetch(path,opts={}){
   if(!apiBase)throw new Error('No API base');
   const headers={'Content-Type':'application/json',...(opts.headers||{})};
-  if(token&&!opts.skipAuth)headers.Authorization=`Bearer ${token}`;
+  if(token)headers.Authorization=`Bearer ${token}`;
   const ctrl=new AbortController();
   const tid=setTimeout(()=>ctrl.abort(),10000);
   try{
     const res=await fetch(apiBase+path,{...opts,headers,signal:ctrl.signal});
     clearTimeout(tid);
-    if(!res.ok){const t=await res.text();throw new Error(t||res.statusText)}
+    if(!res.ok){
+      if(res.status===401){rememberToken(null);toggleAuthUI();throw new Error('Session expired — please sign in again.')}
+      const t=await res.text();throw new Error(t||res.statusText)
+    }
     if(res.status===204)return null;
     return res.json();
   }catch(e){clearTimeout(tid);if(e.name==='AbortError')throw new Error('Request timed out');throw e}
@@ -810,7 +813,7 @@ leaderboardBtn.addEventListener('click',async()=>{
   leaderboardModal.classList.add('show');
   leaderboardTable.innerHTML='Loading…';
   try{
-    const rows=await apiFetch(`/leaderboard?month=${monthKey(currentMonth)}`,{skipAuth:true});
+    const rows=await apiFetch(`/leaderboard?month=${monthKey(currentMonth)}`);
     leaderboardTable.innerHTML='';
     if(!rows.length){leaderboardTable.textContent='No data yet.';return}
     rows.forEach((row,i)=>{
