@@ -547,7 +547,7 @@ function saveBooks(d){booksCache=d;saveLocal()}
 async function apiFetch(path,opts={}){
   if(!apiBase)throw new Error('No API base');
   const headers={'Content-Type':'application/json',...(opts.headers||{})};
-  if(token)headers.Authorization=`Bearer ${token}`;
+  if(token&&!opts.skipAuth)headers.Authorization=`Bearer ${token}`;
   const ctrl=new AbortController();
   const tid=setTimeout(()=>ctrl.abort(),10000);
   try{
@@ -810,7 +810,7 @@ leaderboardBtn.addEventListener('click',async()=>{
   leaderboardModal.classList.add('show');
   leaderboardTable.innerHTML='Loading…';
   try{
-    const rows=await apiFetch(`/leaderboard?month=${monthKey(currentMonth)}`);
+    const rows=await apiFetch(`/leaderboard?month=${monthKey(currentMonth)}`,{skipAuth:true});
     leaderboardTable.innerHTML='';
     if(!rows.length){leaderboardTable.textContent='No data yet.';return}
     rows.forEach((row,i)=>{
